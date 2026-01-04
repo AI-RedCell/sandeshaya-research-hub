@@ -1,0 +1,316 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sandeshaya Academic Research Design System
+   School Colors: White, Maroon (#6B0F1A), Gold (#C9A24D)
+   Tone: Academic, credible, minimal, professional
+*/
+
+@layer base {
+  :root {
+    /* Core backgrounds */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
+
+    /* Card surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+
+    /* Primary: Maroon - School color */
+    --primary: 352 78% 24%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Gold - School color */
+    --secondary: 40 52% 54%;
+    --secondary-foreground: 220 15% 15%;
+
+    /* Muted: Soft gray */
+    --muted: 220 10% 96%;
+    --muted-foreground: 220 10% 45%;
+
+    /* Accent: Gold - Prestige highlights */
+    --accent: 40 52% 54%;
+    --accent-foreground: 220 15% 15%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 352 78% 24%;
+
+    --radius: 0.5rem;
+
+    /* Custom tokens - School Colors */
+    --gold: 40 52% 54%;
+    --gold-light: 40 45% 70%;
+    --gold-dark: 40 55% 45%;
+    --maroon: 352 78% 24%;
+    --maroon-light: 352 65% 35%;
+    --maroon-dark: 352 78% 18%;
+  }
+
+  /* Smooth scroll for entire page */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-foreground;
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl lg:text-5xl leading-tight;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl leading-snug;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  /* Gold divider line */
+  .gold-divider {
+    @apply h-1 w-24 mx-auto my-8 rounded-full;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold)), transparent);
+  }
+
+  /* Gold line accent - longer version */
+  .gold-line-accent {
+    @apply h-px w-full max-w-md mx-auto;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold)), transparent);
+  }
+
+  /* Section padding */
+  .section-spacing {
+    @apply py-16 md:py-24;
+  }
+
+  /* Container */
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-4 md:px-6;
+  }
+
+  /* Text wrap balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Section with alternating backgrounds */
+  .section-white {
+    @apply bg-white;
+  }
+
+  .section-cream {
+    @apply bg-amber-50/30;
+  }
+
+  /* Section title with gold underline */
+  .section-title {
+    @apply text-maroon text-center mb-8 relative;
+  }
+
+  .section-title::after {
+    content: "";
+    @apply absolute left-1/2 -translate-x-1/2 bottom-0 w-16 h-1 bg-secondary rounded-full;
+    margin-bottom: -16px;
+  }
+
+  /* Card with gold border accent - enhanced with hover */
+  .card-accent {
+    @apply bg-white rounded-xl shadow-sm border-l-4 border-secondary p-6;
+    @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px];
+  }
+
+  /* Button with gold hover */
+  .btn-gold {
+    @apply bg-secondary text-maroon font-semibold px-6 py-3 rounded-full;
+    @apply hover:bg-secondary/90 hover:shadow-lg transition-all duration-300;
+  }
+
+  /* Maroon text color */
+  .text-maroon {
+    color: hsl(var(--maroon));
+  }
+
+  /* Background maroon */
+  .bg-maroon {
+    background-color: hsl(var(--maroon));
+  }
+
+  /* Gold shimmer text effect */
+  .text-gold-shimmer {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gold-dark)) 0%,
+      hsl(var(--gold)) 25%,
+      hsl(var(--gold-light)) 50%,
+      hsl(var(--gold)) 75%,
+      hsl(var(--gold-dark)) 100%
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+    text-shadow: none;
+    filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Scroll reveal animation */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Staggered children animation */
+  .stagger-children > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+
+  .stagger-children.visible > *:nth-child(1) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(2) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(3) { transition-delay: 0.3s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(4) { transition-delay: 0.4s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(5) { transition-delay: 0.5s; opacity: 1; transform: translateY(0); }
+
+  /* Icon container */
+  .icon-container {
+    @apply w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4;
+  }
+
+  .icon-container svg {
+    @apply w-6 h-6 text-maroon;
+  }
+}
+
+@layer utilities {
+  /* Gold gradient text */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, hsl(var(--gold-dark)), hsl(var(--gold)), hsl(var(--gold-light)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Maroon gradient background */
+  .bg-maroon-gradient {
+    background: linear-gradient(135deg, hsl(var(--maroon-dark)), hsl(var(--maroon)));
+  }
+
+  /* Survey Page - Google Forms Style */
+  .survey-header {
+    @apply bg-maroon text-white;
+  }
+
+  .survey-card {
+    @apply bg-white rounded-xl border border-border/30;
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      0 8px 24px rgba(0, 0, 0, 0.04);
+  }
+
+  .question-card {
+    @apply bg-white rounded-xl border-l-4 border-l-secondary border border-border/30 p-5 sm:p-6;
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.06);
+    user-select: none;
+  }
+
+  .question-card:hover {
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .option-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors cursor-pointer;
+    user-select: none;
+  }
+
+  .option-item:hover {
+    @apply bg-secondary/10;
+  }
+
+  .survey-progress {
+    @apply h-2 bg-secondary/20 rounded-full overflow-hidden;
+  }
+
+  .survey-progress-bar {
+    @apply h-full bg-secondary rounded-full transition-all duration-500;
+  }
+
+  .survey-nav-btn {
+    @apply px-6 py-2.5 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .survey-nav-btn-primary {
+    @apply bg-maroon text-white hover:bg-maroon/90;
+    box-shadow: 0 2px 8px rgba(107, 15, 26, 0.3);
+  }
+
+  .survey-nav-btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(107, 15, 26, 0.4);
+  }
+
+  .survey-nav-btn-secondary {
+    @apply bg-white text-maroon border border-maroon/20 hover:bg-maroon/5;
+  }
+}

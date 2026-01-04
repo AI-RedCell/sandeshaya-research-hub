@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection: read/write only by authenticated user matching UID
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Responses collection: create only once per UID, no read/update/delete
+    match /responses/{userId} {
+      // Allow create only if:
+      // 1. User is authenticated
+      // 2. User ID matches the document ID
+      // 3. No response document exists yet for this user (prevents duplicates)
+      allow create: if request.auth != null 
+                    && request.auth.uid == userId 
+                    && !exists(/databases/$(database)/documents/responses/$(userId));
+      
+      // No read, update, or delete access to responses
+      allow read, update, delete: if false;
+    }
+    
+    // Metadata collection: public read, no write access
+    match /metadata/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

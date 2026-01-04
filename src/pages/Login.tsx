@@ -77,9 +77,9 @@ const Login = () => {
         </header>
 
         {/* Email Sent Confirmation */}
-        <main className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-sm">
-            <div className="bg-card rounded-lg border border-border shadow-sm p-6 text-center">
+        <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-0 overflow-y-auto">
+          <div className="w-full max-w-[350px] sm:max-w-sm my-auto">
+            <div className="bg-card rounded-lg border border-border shadow-sm p-5 sm:p-6 text-center">
               <div className="mb-4 flex justify-center">
                 <div className="p-3 rounded-full bg-accent/10">
                   <CheckCircle2 className="w-10 h-10 text-accent" />
@@ -141,11 +141,11 @@ const Login = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-sm">
+      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-0 overflow-y-auto">
+        <div className="w-full max-w-[350px] sm:max-w-sm my-auto">
           {/* Card - Elegant 3D Effect */}
           <div 
-            className="bg-card rounded-xl border border-border/50 p-6"
+            className="bg-card rounded-xl border border-border/50 p-5 sm:p-6"
             style={{
               boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 20px 40px -10px rgba(107, 15, 26, 0.1)"
             }}

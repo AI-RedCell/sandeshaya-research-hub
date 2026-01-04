@@ -60,6 +60,14 @@
   /* Smooth scroll for entire page */
   html {
     scroll-behavior: smooth;
+    touch-action: manipulation; /* Disable double-tap zoom */
+  }
+
+  /* Prevent iOS zoom on inputs */
+  @media screen and (max-width: 768px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -281,7 +289,7 @@
   }
 
   .option-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors cursor-pointer;
+    @apply flex items-center gap-3 px-3 py-3.5 sm:py-2.5 rounded-lg transition-colors cursor-pointer;
     user-select: none;
   }
 

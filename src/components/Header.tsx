@@ -55,12 +55,12 @@ const Header = ({
         <div className="flex items-center gap-6">
           {/* Language Switcher */}
           {showLanguageSwitcher && (
-            <nav className="flex items-center gap-1 text-sm" aria-label="Language selection">
+            <nav className="flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm" aria-label="Language selection">
               {languages.map((lang, index) => (
                 <span key={lang.code} className="flex items-center">
                   <button
                     onClick={() => handleLanguageChange(lang.code)}
-                    className={`px-2 py-1 rounded transition-colors ${
+                    className={`px-1.5 py-1 sm:px-2 sm:py-1 rounded transition-colors ${
                       activeLanguage === lang.code
                         ? "text-maroon font-semibold bg-secondary/30"
                         : "text-gray-500 hover:text-maroon"
@@ -70,19 +70,19 @@ const Header = ({
                     {lang.label}
                   </button>
                   {index < languages.length - 1 && (
-                    <span className="text-gray-300 mx-1">|</span>
+                    <span className="text-gray-300 mx-0.5 sm:mx-1">|</span>
                   )}
                 </span>
               ))}
             </nav>
           )}
 
-          {/* CTA Button */}
+          {/* CTA Button - Hidden on mobile, visible on tablet+ */}
           <Button 
             variant="default" 
             size="sm" 
             asChild 
-            className="bg-maroon hover:bg-maroon/90 text-white font-medium rounded-full px-6"
+            className="hidden md:flex bg-maroon hover:bg-maroon/90 text-white font-medium rounded-full px-6"
           >
             <Link to="/login">Proceed to Survey</Link>
           </Button>

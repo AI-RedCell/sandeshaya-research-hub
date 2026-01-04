@@ -24,8 +24,8 @@ const Footer = () => {
       {/* Gold accent line */}
       <div className="h-1 bg-secondary" />
       
-      <div className="container-narrow py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+      <div className="container-narrow py-8 sm:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
           
           {/* Logos and School Info */}
           <div className="text-center md:text-left">
@@ -61,12 +61,12 @@ const Footer = () => {
             <h4 className="font-semibold text-secondary mb-4">Contact</h4>
             <div className="space-y-2 text-sm text-white/80">
               <div className="flex items-center justify-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span>sandeshaya@anandacollege.edu.lk</span>
+                <Mail className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm break-all">sandeshaya@anandacollege.edu.lk</span>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>Maradana Road, Colombo 10</span>
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Maradana Road, Colombo 10</span>
               </div>
             </div>
           </div>
@@ -74,7 +74,7 @@ const Footer = () => {
           {/* Social Links */}
           <div className="text-center md:text-right">
             <h4 className="font-semibold text-secondary mb-4">Follow Us</h4>
-            <div className="flex items-center justify-center md:justify-end gap-4">
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-3">
               {socialLinks.map((social, index) => {
                 const Icon = social.icon;
                 return (

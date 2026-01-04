@@ -50,27 +50,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      
-      if (firebaseUser) {
-        try {
-          // Fetch user data from Firestore
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (userDoc.exists()) {
-            setUserData(userDoc.data() as UserData);
+    // If it's a sign-in with email link, keep loading true initially
+    // We'll handle the actual sign-in in the other effect
+    const isEmailLink = isSignInWithEmailLink(auth, window.location.href);
+    if (!isEmailLink) {
+      // Normal flow - listen for user
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        setUser(firebaseUser);
+        
+        if (firebaseUser) {
+          try {
+            // Fetch user data from Firestore
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+            if (userDoc.exists()) {
+              setUserData(userDoc.data() as UserData);
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
           }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+        } else {
+          setUserData(null);
         }
-      } else {
-        setUserData(null);
-      }
-      
-      setLoading(false);
-    });
+        
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    }
   }, []);
 
   // Check if returning from email link (on page load)
@@ -79,6 +85,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Check if the URL is a sign-in with email link
       if (isSignInWithEmailLink(auth, window.location.href)) {
         setIsEmailLinkSignIn(true);
+        // Keep loading true while we verify
+        setLoading(true);
         
         // Get the email if available. This should be available if the user completes
         // the flow on the same device where they started it.
@@ -93,9 +101,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (email) {
           try {
             await completeSignIn(email);
+            // After successful sign-in, onAuthStateChanged will trigger and set user
           } catch (error) {
             console.error('Error during auto sign-in:', error);
+            // If error, stop loading so user can try again manually
+            setLoading(false);
           }
+        } else {
+          setLoading(false);
         }
         
         setIsEmailLinkSignIn(false);

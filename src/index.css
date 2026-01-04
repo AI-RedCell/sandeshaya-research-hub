@@ -322,3 +322,14 @@
     @apply bg-white text-maroon border border-maroon/20 hover:bg-maroon/5;
   }
 }
+
+/* Loading Screen Animations */
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-progress {
+  animation: progress 2s infinite ease-in-out;
+}

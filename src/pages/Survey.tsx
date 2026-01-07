@@ -389,7 +389,7 @@ const Survey = () => {
           <div className="w-24"></div>
 
           {/* Center - Title */}
-          <h1 className="text-lg sm:text-xl font-semibold text-white">
+          <h1 className="text-lg sm:text-xl font-semibold text-white whitespace-nowrap">
             Sandeshaya Survey
           </h1>
           

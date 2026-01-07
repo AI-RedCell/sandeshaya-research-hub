@@ -48,7 +48,7 @@ const Footer = () => {
               )}
             </div>
             <div className="mb-2">
-              <h3 className="font-bold text-lg">Ananda College</h3>
+              <h3 className="font-bold text-lg text-white">Ananda College</h3>
               <p className="text-white/70 text-sm">Broadcasting Unit</p>
             </div>
             <p className="text-white/60 text-sm">

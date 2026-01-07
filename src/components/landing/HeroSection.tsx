@@ -18,9 +18,9 @@ const HeroSection = () => {
       {/* Content Container - Fills available space, centers content */}
       <div className="flex-1 flex items-center justify-center relative z-10 px-4 sm:px-6 pt-16">
         <div className="text-center max-w-4xl mx-auto">
-          {/* Main Title - Sandeshaya with Gold Shimmer */}
+          {/* Main Title - Sandeshaya with Gold Shimmer - Smaller on mobile */}
           <h1 
-            className="mb-2 sm:mb-4 drop-shadow-2xl text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold tracking-wide text-gold-shimmer"
+            className="mb-2 sm:mb-4 drop-shadow-2xl text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-bold tracking-wide text-gold-shimmer"
             style={{ fontFamily: "'PT Serif', serif" }}
           >
             Sandeshaya
@@ -52,8 +52,8 @@ const HeroSection = () => {
         </div>
       </div>
       
-      {/* CTA Button - At bottom with minimal padding on mobile */}
-      <div className="relative z-10 pb-6 sm:pb-12 md:pb-16 text-center px-4">
+      {/* CTA Button - Lifted up on mobile with more bottom padding/safe area */}
+      <div className="relative z-10 pb-12 sm:pb-12 md:pb-16 text-center px-4">
         <Button 
           variant="default" 
           size="lg" 

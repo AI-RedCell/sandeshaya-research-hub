@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 
 interface LoadingScreenProps {
   message?: string;
+  subtitle?: string;
 }
 
 // Import logo safely
@@ -13,9 +14,12 @@ try {
   logoSrc = null;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
+  message = "Loading...", 
+  subtitle = "Please wait while we verify your details" 
+}) => {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="flex flex-col items-center space-y-6 max-w-sm p-4 text-center">
         {/* Logo or Placeholder */}
         <div className="relative">
@@ -38,7 +42,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." })
             {message}
           </h2>
           <p className="text-sm text-gray-500 max-w-[250px]">
-            Please wait while we verify your details
+            {subtitle}
           </p>
         </div>
 

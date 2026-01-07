@@ -1,7 +1,17 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { Logo } from '@/components/common';
-import type { LoadingScreenProps } from '@/types';
+
+interface LoadingScreenProps {
+  message?: string;
+}
+
+// Import logo safely
+let logoSrc: string | null = null;
+try {
+  logoSrc = new URL('../../assets/logo.png', import.meta.url).href;
+} catch {
+  logoSrc = null;
+}
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." }) => {
   return (
@@ -11,7 +21,13 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." })
         <div className="relative">
           <div className="absolute inset-0 bg-maroon/20 blur-xl rounded-full scale-150 animate-pulse" />
           <div className="relative z-10 drop-shadow-lg">
-            <Logo type="acbu" size="xl" />
+            {logoSrc ? (
+              <img src={logoSrc} alt="ACBU Logo" className="h-20 w-auto" />
+            ) : (
+              <div className="h-20 w-20 rounded-full bg-maroon flex items-center justify-center">
+                <span className="text-white text-xl font-bold">ACBU</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -36,3 +52,4 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." })
 };
 
 export default LoadingScreen;
+

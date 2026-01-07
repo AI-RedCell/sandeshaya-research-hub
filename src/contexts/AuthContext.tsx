@@ -6,6 +6,8 @@ import {
   isSignInWithEmailLink,
   signInWithEmailLink,
   signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -25,6 +27,7 @@ interface AuthContextType {
   loading: boolean;
   sendEmailLink: (email: string, name: string) => Promise<void>;
   completeSignIn: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   hasSubmitted: boolean;
   isEmailLinkSignIn: boolean;
@@ -51,9 +54,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('[Auth] onAuthStateChanged:', firebaseUser?.email || 'null');
       setUser(firebaseUser);
       
       if (firebaseUser) {
+        // If we have a user, auth is complete - reset email link sign-in state
+        setIsEmailLinkSignIn(false);
+        
         try {
           // Fetch user data from Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
@@ -78,7 +85,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const handleEmailLinkSignIn = async () => {
       // Check if the URL is a sign-in with email link
       if (isSignInWithEmailLink(auth, window.location.href)) {
+        console.log('[Auth] Email link detected, starting sign-in flow');
         setIsEmailLinkSignIn(true);
+        setLoading(true); // Keep loading state true
         
         // Get the email if available. This should be available if the user completes
         // the flow on the same device where they started it.
@@ -92,13 +101,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (email) {
           try {
+            console.log('[Auth] Completing sign-in for:', email);
             await completeSignIn(email);
+            console.log('[Auth] Sign-in completed successfully');
+            // Don't set isEmailLinkSignIn to false here - let onAuthStateChanged handle it
           } catch (error) {
-            console.error('Error during auto sign-in:', error);
+            console.error('[Auth] Error during auto sign-in:', error);
+            // On error, reset states so user can retry
+            setIsEmailLinkSignIn(false);
+            setLoading(false);
           }
+        } else {
+          // User cancelled the email prompt
+          console.log('[Auth] User cancelled email prompt');
+          setIsEmailLinkSignIn(false);
+          setLoading(false);
+          // Redirect to login since we can't complete sign-in
+          window.location.href = '/login';
         }
-        
-        setIsEmailLinkSignIn(false);
       }
     };
 
@@ -156,6 +176,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Sign in with Google
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+      
+      // Check if user document exists
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        // Create new user document
+        const newUserData: UserData = {
+          name: firebaseUser.displayName || '',
+          email: firebaseUser.email || '',
+          emailVerified: firebaseUser.emailVerified,
+          submitted: false,
+          createdAt: serverTimestamp(),
+          submittedAt: null,
+        };
+        await setDoc(userDocRef, newUserData);
+        setUserData(newUserData);
+      } else {
+        setUserData(userDoc.data() as UserData);
+      }
+      
+      // Redirect to survey after successful sign-in
+      window.location.href = '/survey';
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     await firebaseSignOut(auth);
     setUser(null);
@@ -168,6 +223,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loading,
     sendEmailLink,
     completeSignIn,
+    signInWithGoogle,
     signOut,
     hasSubmitted: userData?.submitted ?? false,
     isEmailLinkSignIn,

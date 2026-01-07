@@ -77,12 +77,12 @@ const Header = ({
             </nav>
           )}
 
-          {/* CTA Button */}
+          {/* CTA Button - Hidden on mobile, shown on md+ */}
           <Button 
             variant="default" 
             size="sm" 
             asChild 
-            className="bg-maroon hover:bg-maroon/90 text-white font-medium rounded-full px-6"
+            className="hidden md:inline-flex bg-maroon hover:bg-maroon/90 text-white font-medium rounded-full px-6"
           >
             <Link to="/login">Proceed to Survey</Link>
           </Button>

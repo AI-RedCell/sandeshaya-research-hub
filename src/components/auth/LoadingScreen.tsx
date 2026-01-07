@@ -1,17 +1,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-
-interface LoadingScreenProps {
-  message?: string;
-}
-
-// Import logo safely
-let logoSrc: string | null = null;
-try {
-  logoSrc = new URL('../assets/logo.png', import.meta.url).href;
-} catch {
-  logoSrc = null;
-}
+import { Logo } from '@/components/common';
+import type { LoadingScreenProps } from '@/types';
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." }) => {
   return (
@@ -20,17 +10,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = "Loading..." })
         {/* Logo or Placeholder */}
         <div className="relative">
           <div className="absolute inset-0 bg-maroon/20 blur-xl rounded-full scale-150 animate-pulse" />
-          {logoSrc ? (
-            <img 
-              src={logoSrc} 
-              alt="ACBU Logo" 
-              className="h-20 w-auto relative z-10 drop-shadow-lg" 
-            />
-          ) : (
-            <div className="h-20 w-20 rounded-full bg-maroon flex items-center justify-center relative z-10 shadow-xl border-2 border-secondary/20">
-              <span className="text-white text-lg font-bold">ACBU</span>
-            </div>
-          )}
+          <div className="relative z-10 drop-shadow-lg">
+            <Logo type="acbu" size="xl" />
+          </div>
         </div>
 
         {/* Loading Spinner & Text */}

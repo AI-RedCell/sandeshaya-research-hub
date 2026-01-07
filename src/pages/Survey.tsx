@@ -383,22 +383,24 @@ const Survey = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header Banner */}
-      <header className="bg-maroon text-white z-50 sticky top-0 shadow-md">
-        <div className="w-full px-4 md:px-12 flex items-center justify-between h-14 md:h-16">
-          
-          {/* Title - Scaling text for mobile */}
-          <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white truncate max-w-[200px] sm:max-w-none">
+      <header className="bg-maroon text-white z-50">
+        <div className="w-full px-6 md:px-12 flex items-center justify-between h-14">
+          {/* Empty left spacer for balance */}
+          <div className="w-24"></div>
+
+          {/* Center - Title */}
+          <h1 className="text-lg sm:text-xl font-semibold text-white">
             Sandeshaya Survey
           </h1>
           
           {/* Right - Language Switcher & Logout */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <nav className="flex items-center gap-1 text-xs sm:text-sm" aria-label="Language selection">
+          <div className="flex items-center gap-4">
+            <nav className="flex items-center gap-1 text-sm" aria-label="Language selection">
               {languages.map((lang, index) => (
                 <span key={lang.code} className="flex items-center">
                   <button
                     onClick={() => setLanguage(lang.code)}
-                    className={`px-1.5 py-1 rounded transition-colors ${
+                    className={`px-2 py-1 rounded transition-colors ${
                       language === lang.code
                         ? "text-white font-semibold bg-white/20"
                         : "text-white/70 hover:text-white"
@@ -407,7 +409,7 @@ const Survey = () => {
                     {lang.label}
                   </button>
                   {index < languages.length - 1 && (
-                    <span className="text-white/30 mx-0.5 sm:mx-1">|</span>
+                    <span className="text-white/30 mx-1">|</span>
                   )}
                 </span>
               ))}
@@ -420,7 +422,7 @@ const Survey = () => {
                   await signOut();
                   navigate('/login');
                 }}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-7 px-2 text-xs sm:text-sm sm:h-8"
+                className="text-white/70 hover:text-white hover:bg-white/10 h-8 px-2"
               >
                 Log Out
             </Button>
@@ -546,14 +548,12 @@ const Survey = () => {
           ))}
 
           {/* Navigation */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-4 pb-8 border-t border-gray-100 mt-6">
+          <div className="flex items-center justify-between pt-4 pb-8">
             <Button
               variant="ghost"
               onClick={handlePrevious}
               disabled={currentSection === 0}
-              className={`survey-nav-btn survey-nav-btn-secondary gap-2 w-full sm:w-auto justify-center ${
-                currentSection === 0 ? "hidden sm:flex opacity-0 pointer-events-none" : ""
-              }`}
+              className="survey-nav-btn survey-nav-btn-secondary gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -562,7 +562,7 @@ const Survey = () => {
             {currentSection < surveyStructure.length - 1 ? (
               <Button 
                 onClick={handleNext} 
-                className="survey-nav-btn survey-nav-btn-primary gap-2 w-full sm:w-auto justify-center py-6 sm:py-2.5"
+                className="survey-nav-btn survey-nav-btn-primary gap-2"
               >
                 Next
                 <ArrowRight className="w-4 h-4" />
@@ -570,7 +570,7 @@ const Survey = () => {
             ) : (
               <Button 
                 onClick={handleSubmit} 
-                className="survey-nav-btn survey-nav-btn-primary gap-2 w-full sm:w-auto justify-center py-6 sm:py-2.5"
+                className="survey-nav-btn survey-nav-btn-primary gap-2"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

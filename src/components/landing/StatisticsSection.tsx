@@ -3,7 +3,7 @@ import { School, FileText, MapPin } from "lucide-react";
 const StatisticsSection = () => {
   const stats = [
     { icon: School, value: "500+", label: "Schools Invited" },
-    { icon: FileText, value: "30", label: "Questions" },
+    { icon: FileText, value: "33", label: "Questions" },
     { icon: MapPin, value: "9", label: "Provinces" },
   ];
 
@@ -12,7 +12,7 @@ const StatisticsSection = () => {
       {/* Gold accent lines */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-secondary" />
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-secondary" />
-      
+
       <div className="container-narrow">
         <div className="grid grid-cols-3 gap-4 sm:gap-8 text-center">
           {stats.map((stat, index) => {

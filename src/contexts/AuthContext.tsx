@@ -56,11 +56,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('[Auth] onAuthStateChanged:', firebaseUser?.email || 'null');
       setUser(firebaseUser);
-      
+
       if (firebaseUser) {
         // If we have a user, auth is complete - reset email link sign-in state
         setIsEmailLinkSignIn(false);
-        
+
         try {
           // Fetch user data from Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setUserData(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -88,17 +88,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[Auth] Email link detected, starting sign-in flow');
         setIsEmailLinkSignIn(true);
         setLoading(true); // Keep loading state true
-        
+
         // Get the email if available. This should be available if the user completes
         // the flow on the same device where they started it.
         let email = localStorage.getItem('emailForSignIn');
-        
+
         if (!email) {
           // User opened the link on a different device. To prevent session fixation
           // attacks, ask the user to provide the associated email again.
           email = window.prompt('Please provide your email for confirmation');
         }
-        
+
         if (email) {
           try {
             console.log('[Auth] Completing sign-in for:', email);
@@ -128,9 +128,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Send the authentication link to the user's email
   const sendEmailLink = async (email: string, name: string) => {
     const actionCodeSettings = getActionCodeSettings();
-    
+
     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    
+
     // Save the email locally so you don't need to ask the user for it again
     // if they open the link on the same device.
     localStorage.setItem('emailForSignIn', email);
@@ -143,11 +143,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // The client SDK will parse the code from the link for you.
       const result = await signInWithEmailLink(auth, email, window.location.href);
       const name = localStorage.getItem('nameForSignIn') || '';
-      
+
       // Check if user document exists
       const userDocRef = doc(db, 'users', result.user.uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (!userDoc.exists()) {
         // Create new user document
         const newUserData: UserData = {
@@ -163,11 +163,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setUserData(userDoc.data() as UserData);
       }
-      
+
       // Clear email from storage (following Firebase docs)
       localStorage.removeItem('emailForSignIn');
       localStorage.removeItem('nameForSignIn');
-      
+
       // Clean up URL (remove the sign-in code from URL)
       window.history.replaceState(null, '', '/survey');
     } catch (error) {
@@ -182,11 +182,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
-      
+
       // Check if user document exists
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (!userDoc.exists()) {
         // Create new user document
         const newUserData: UserData = {
@@ -202,7 +202,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setUserData(userDoc.data() as UserData);
       }
-      
+
       // Redirect to survey after successful sign-in
       window.location.href = '/survey';
     } catch (error) {

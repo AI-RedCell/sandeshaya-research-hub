@@ -13,54 +13,54 @@ const USERS_PER_PAGE = 10;
 // SANDESHAYA ACADEMIC THEME PALETTE
 // SANDESHAYA INDUSTRIAL THEME PALETTE
 const THEME = {
-  colors: {
-    primary: '#2563EB',      // Blue 600
-    secondary: '#475569',    // Slate 600
-    success: '#10B981',
-    warning: '#F59E0B',
-    danger: '#EF4444',
-    info: '#3B82F6',
-    purple: '#8B5CF6',
-    teal: '#14B8A6',
-    text: '#64748B',         // Slate 500
-    textLight: '#0F172A',    // Slate 900
-    grid: '#E2E8F0',         // Slate 200
-  },
-  chartDefaults: {
-    font: { family: "'Inter', sans-serif", size: 11 },
-    responsive: true,
-    maintainAspectRatio: false,
-    elements: {
-      line: { tension: 0.4, borderWidth: 3 },
-      bar: { borderRadius: 4, borderSkipped: false },
-      point: { radius: 4, hitRadius: 10, hoverRadius: 6 }
+    colors: {
+        primary: '#2563EB',      // Blue 600
+        secondary: '#475569',    // Slate 600
+        success: '#10B981',
+        warning: '#F59E0B',
+        danger: '#EF4444',
+        info: '#3B82F6',
+        purple: '#8B5CF6',
+        teal: '#14B8A6',
+        text: '#64748B',         // Slate 500
+        textLight: '#0F172A',    // Slate 900
+        grid: '#E2E8F0',         // Slate 200
     },
-    plugins: {
-      legend: { labels: { color: '#64748B', usePointStyle: true, boxWidth: 8, font: { weight: 500 } } },
-      tooltip: {
-        backgroundColor: '#FFFFFF',
-        titleColor: '#0F172A',
-        bodyColor: '#64748B',
-        borderColor: '#E2E8F0',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 8,
-        displayColors: true,
-        titleFont: { weight: 600 },
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
-      }
-    },
-    scales: {
-        x: { 
-            grid: { display: false }, 
-            ticks: { color: '#64748B' } 
+    chartDefaults: {
+        font: { family: "'Inter', sans-serif", size: 11 },
+        responsive: true,
+        maintainAspectRatio: false,
+        elements: {
+            line: { tension: 0.4, borderWidth: 3 },
+            bar: { borderRadius: 4, borderSkipped: false },
+            point: { radius: 4, hitRadius: 10, hoverRadius: 6 }
         },
-        y: { 
-            grid: { color: '#E2E8F0', borderDash: [4, 4] }, 
-            ticks: { color: '#64748B' } 
+        plugins: {
+            legend: { labels: { color: '#64748B', usePointStyle: true, boxWidth: 8, font: { weight: 500 } } },
+            tooltip: {
+                backgroundColor: '#FFFFFF',
+                titleColor: '#0F172A',
+                bodyColor: '#64748B',
+                borderColor: '#E2E8F0',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: true,
+                titleFont: { weight: 600 },
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { color: '#64748B' }
+            },
+            y: {
+                grid: { color: '#E2E8F0', borderDash: [4, 4] },
+                ticks: { color: '#64748B' }
+            }
         }
     }
-  }
 };
 
 // Color palettes for charts
@@ -76,7 +76,31 @@ const ANALYTICS_PALETTE = [
     '#F43F5E', // Rose
 ];
 
-const MAROON_GRADIENT = ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE']; // Replaced with Blue Gradient actually
+const BRAND_COLORS = {
+    'Facebook': '#1877F2',
+    'Instagram': '#E4405F',
+    'WhatsApp': '#25D366',
+    'YouTube': '#FF0000',
+    'TikTok': '#000000',
+    'Twitter/X': '#1DA1F2',
+    'Snapchat': '#FFFC00',
+    'TV News': '#F97316',
+    'Newspapers': '#64748B',
+    'Websites': '#8B5CF6',
+    'Radio': '#0EA5E9',
+    'undefined': '#E2E8F0',
+    'null': '#E2E8F0',
+    '': '#E2E8F0'
+};
+
+const MAROON_GRADIENT = ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
+
+function getSmartColor(label, index) {
+    if (!label || label === 'undefined' || label === 'null') return BRAND_COLORS['undefined'];
+    if (BRAND_COLORS[label]) return BRAND_COLORS[label];
+    // Fallback to palette cycle
+    return ANALYTICS_PALETTE[index % ANALYTICS_PALETTE.length];
+}
 
 // ============================================
 // DATA LOADING & PROCESSING
@@ -84,16 +108,16 @@ const MAROON_GRADIENT = ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
 
 function loadAnalytics() {
     console.log("Connecting to Sandeshaya Firestore...");
-    
+
     // Listen to Users collection
     db.collection('users').onSnapshot(snap => {
-        allUsers = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         refreshDashboard();
     }, err => console.error("Users Listener Error:", err));
 
     // Listen to Responses collection
     db.collection('responses').onSnapshot(snap => {
-        allResponses = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        allResponses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         refreshDashboard();
     }, err => console.error("Responses Listener Error:", err));
 }
@@ -101,7 +125,7 @@ function loadAnalytics() {
 // Debounced Refresh
 let refreshTimeout;
 function refreshDashboard() {
-    if(refreshTimeout) clearTimeout(refreshTimeout);
+    if (refreshTimeout) clearTimeout(refreshTimeout);
     refreshTimeout = setTimeout(() => {
         console.log("Refreshing Sandeshaya Dashboard...");
         try {
@@ -116,7 +140,7 @@ function refreshDashboard() {
             renderUsersTable();
             renderDetailedTable();
             renderDetailedCharts();
-        } catch(e) {
+        } catch (e) {
             console.error("Render Error:", e);
         }
     }, 200);
@@ -130,17 +154,17 @@ function updateKPIs() {
     const total = allUsers.length;
     const completed = allUsers.filter(u => u.submitted === true).length;
     const incomplete = total - completed;
-    
+
     // Unique provinces from responses
     const provinces = new Set();
     allResponses.forEach(r => {
-        if(r.province) provinces.add(r.province);
+        if (r.province) provinces.add(r.province);
     });
 
     animateValue('total-users', total);
-    document.getElementById('completion-rate').textContent = total ? Math.round((completed/total)*100) + '%' : '0%';
+    document.getElementById('completion-rate').textContent = total ? Math.round((completed / total) * 100) + '%' : '0%';
     document.getElementById('provinces-count').textContent = provinces.size;
-    document.getElementById('drop-off-rate').textContent = total ? Math.round((incomplete/total)*100) + '%' : '0%';
+    document.getElementById('drop-off-rate').textContent = total ? Math.round((incomplete / total) * 100) + '%' : '0%';
 }
 
 // ============================================
@@ -151,28 +175,28 @@ function renderDemographics() {
     // Province Distribution
     const provinceData = {};
     allResponses.forEach(r => {
-        if(r.province) provinceData[r.province] = (provinceData[r.province] || 0) + 1;
+        if (r.province) provinceData[r.province] = (provinceData[r.province] || 0) + 1;
     });
     createChart('provinceChart', 'bar', provinceData, ANALYTICS_PALETTE);
 
     // School Type Distribution
     const schoolData = {};
     allResponses.forEach(r => {
-        if(r.school_type) schoolData[r.school_type] = (schoolData[r.school_type] || 0) + 1;
+        if (r.school_type) schoolData[r.school_type] = (schoolData[r.school_type] || 0) + 1;
     });
     createChart('schoolTypeChart', 'doughnut', schoolData, MAROON_GRADIENT);
 
     // Age Group Distribution
     const ageData = {};
     allResponses.forEach(r => {
-        if(r.age_group) ageData[r.age_group] = (ageData[r.age_group] || 0) + 1;
+        if (r.age_group) ageData[r.age_group] = (ageData[r.age_group] || 0) + 1;
     });
     createChart('ageGroupChart', 'pie', ageData, ANALYTICS_PALETTE);
 
     // Grade Distribution
     const gradeData = {};
     allResponses.forEach(r => {
-        if(r.grade) gradeData[r.grade] = (gradeData[r.grade] || 0) + 1;
+        if (r.grade) gradeData[r.grade] = (gradeData[r.grade] || 0) + 1;
     });
     createChart('gradeChart', 'bar', gradeData, MAROON_GRADIENT);
 }
@@ -185,21 +209,21 @@ function renderMediaConsumption() {
     // Primary Device
     const deviceData = {};
     allResponses.forEach(r => {
-        if(r.primary_device) deviceData[r.primary_device] = (deviceData[r.primary_device] || 0) + 1;
+        if (r.primary_device) deviceData[r.primary_device] = (deviceData[r.primary_device] || 0) + 1;
     });
     createChart('deviceChart', 'doughnut', deviceData, ANALYTICS_PALETTE);
 
     // Media Hours
     const hoursData = {};
     allResponses.forEach(r => {
-        if(r.media_hours) hoursData[r.media_hours] = (hoursData[r.media_hours] || 0) + 1;
+        if (r.media_hours) hoursData[r.media_hours] = (hoursData[r.media_hours] || 0) + 1;
     });
     createChart('hoursChart', 'bar', hoursData, MAROON_GRADIENT);
 
     // Media Sources (multi-select)
     const sourcesData = {};
     allResponses.forEach(r => {
-        if(r.media_sources) {
+        if (r.media_sources) {
             const sources = Array.isArray(r.media_sources) ? r.media_sources : [r.media_sources];
             sources.forEach(s => {
                 sourcesData[s] = (sourcesData[s] || 0) + 1;
@@ -211,7 +235,7 @@ function renderMediaConsumption() {
     // Social Platforms (multi-select)
     const platformsData = {};
     allResponses.forEach(r => {
-        if(r.social_platforms) {
+        if (r.social_platforms) {
             const platforms = Array.isArray(r.social_platforms) ? r.social_platforms : [r.social_platforms];
             platforms.forEach(p => {
                 platformsData[p] = (platformsData[p] || 0) + 1;
@@ -229,28 +253,28 @@ function renderEthicsAwareness() {
     // Heard of Ethics
     const heardData = {};
     allResponses.forEach(r => {
-        if(r.heard_ethics) heardData[r.heard_ethics] = (heardData[r.heard_ethics] || 0) + 1;
+        if (r.heard_ethics) heardData[r.heard_ethics] = (heardData[r.heard_ethics] || 0) + 1;
     });
     createChart('heardEthicsChart', 'pie', heardData, [THEME.colors.success, THEME.colors.danger, THEME.colors.warning]);
 
     // Ethics Importance
     const importanceData = {};
     allResponses.forEach(r => {
-        if(r.ethics_important) importanceData[r.ethics_important] = (importanceData[r.ethics_important] || 0) + 1;
+        if (r.ethics_important) importanceData[r.ethics_important] = (importanceData[r.ethics_important] || 0) + 1;
     });
     createChart('ethicsImportanceChart', 'doughnut', importanceData, ANALYTICS_PALETTE);
 
     // Biggest Problem
     const problemData = {};
     allResponses.forEach(r => {
-        if(r.biggest_problem) problemData[r.biggest_problem] = (problemData[r.biggest_problem] || 0) + 1;
+        if (r.biggest_problem) problemData[r.biggest_problem] = (problemData[r.biggest_problem] || 0) + 1;
     });
     createChart('biggestProblemChart', 'bar', problemData, MAROON_GRADIENT);
 
     // Seen Unethical Content
     const seenData = {};
     allResponses.forEach(r => {
-        if(r.seen_unethical) seenData[r.seen_unethical] = (seenData[r.seen_unethical] || 0) + 1;
+        if (r.seen_unethical) seenData[r.seen_unethical] = (seenData[r.seen_unethical] || 0) + 1;
     });
     createChart('seenUnethicalChart', 'doughnut', seenData, ANALYTICS_PALETTE);
 }
@@ -263,14 +287,14 @@ function renderTrustSection() {
     // Trust Media
     const trustData = {};
     allResponses.forEach(r => {
-        if(r.trust_media) trustData[r.trust_media] = (trustData[r.trust_media] || 0) + 1;
+        if (r.trust_media) trustData[r.trust_media] = (trustData[r.trust_media] || 0) + 1;
     });
     createChart('trustMediaChart', 'bar', trustData, MAROON_GRADIENT);
 
     // Media Influence
     const influenceData = {};
     allResponses.forEach(r => {
-        if(r.media_influence) influenceData[r.media_influence] = (influenceData[r.media_influence] || 0) + 1;
+        if (r.media_influence) influenceData[r.media_influence] = (influenceData[r.media_influence] || 0) + 1;
     });
     createChart('mediaInfluenceChart', 'doughnut', influenceData, ANALYTICS_PALETTE);
 }
@@ -283,14 +307,14 @@ function renderRegulationSection() {
     // Need Regulation
     const needData = {};
     allResponses.forEach(r => {
-        if(r.need_regulation) needData[r.need_regulation] = (needData[r.need_regulation] || 0) + 1;
+        if (r.need_regulation) needData[r.need_regulation] = (needData[r.need_regulation] || 0) + 1;
     });
     createChart('needRegulationChart', 'doughnut', needData, [THEME.colors.success, THEME.colors.info, THEME.colors.warning, THEME.colors.danger]);
 
     // Who Should Regulate
     const whoData = {};
     allResponses.forEach(r => {
-        if(r.who_regulate) whoData[r.who_regulate] = (whoData[r.who_regulate] || 0) + 1;
+        if (r.who_regulate) whoData[r.who_regulate] = (whoData[r.who_regulate] || 0) + 1;
     });
     createChart('whoRegulateChart', 'pie', whoData, ANALYTICS_PALETTE);
 }
@@ -303,14 +327,14 @@ function renderFutureVision() {
     // Youth Role
     const youthData = {};
     allResponses.forEach(r => {
-        if(r.youth_role) youthData[r.youth_role] = (youthData[r.youth_role] || 0) + 1;
+        if (r.youth_role) youthData[r.youth_role] = (youthData[r.youth_role] || 0) + 1;
     });
     createChart('youthRoleChart', 'doughnut', youthData, [THEME.colors.success, THEME.colors.info, THEME.colors.danger, THEME.colors.text]);
 
     // Would Report
     const reportData = {};
     allResponses.forEach(r => {
-        if(r.would_report) reportData[r.would_report] = (reportData[r.would_report] || 0) + 1;
+        if (r.would_report) reportData[r.would_report] = (reportData[r.would_report] || 0) + 1;
     });
     createChart('wouldReportChart', 'pie', reportData, [THEME.colors.success, THEME.colors.warning, THEME.colors.danger]);
 }
@@ -334,13 +358,13 @@ function renderFunnelAnalysis() {
     ];
 
     const funnelData = sections.map(s => {
-        if(s.count !== undefined) return s.count;
+        if (s.count !== undefined) return s.count;
         // Count users who have all fields in this section
         return allResponses.filter(r => s.fields.every(f => r[f])).length;
     });
 
     const ctx = document.getElementById('funnelChart');
-    if(charts.funnel) charts.funnel.destroy();
+    if (charts.funnel) charts.funnel.destroy();
 
     charts.funnel = new Chart(ctx, {
         type: 'line',
@@ -377,16 +401,55 @@ function renderFunnelAnalysis() {
 
 function createChart(id, type, dataObj, colors) {
     const ctx = document.getElementById(id);
-    if(!ctx) return;
-    if(charts[id]) charts[id].destroy();
+    if (!ctx) return;
+    if (charts[id]) charts[id].destroy();
+
+    const labels = Object.keys(dataObj);
+    const dataValues = Object.values(dataObj);
+
+    // Generate Smart Colors if colors argument is generic palette,
+    // OR if we want to enforce brand colors for specific charts.
+    // We'll map colors based on labels.
+    let backgroundColors;
+
+    if (Array.isArray(colors) && colors === ANALYTICS_PALETTE) {
+        // Use smart coloring
+        backgroundColors = labels.map((l, i) => getSmartColor(l, i));
+    } else {
+        // Use provided gradient or specific palette
+        // But still check for undefined/null labels to make them grey
+        backgroundColors = Array.isArray(colors) ? colors : colors; // Should be array
+        if (colors === MAROON_GRADIENT) {
+            // For gradients, we might just keep them unless value is really weird? 
+            // Actually, let's stick to gradient for distribution, but smart color is better for categories.
+            // Let's keep gradient for things like "Age Group" (ordered), but use smart for "Social Platforms".
+            // Implementation: If passed specific colors, use them. If passed ANALYTICS_PALETTE, use smart.
+        } else {
+            // Re-map for undefined even in gradients?
+            // No, gradients imply order usually.
+        }
+    }
+
+    // Force Smart Colors for known brand categories even if gradient passed?
+    // Let's stick to the simpler logic: If we detect brand names, we override.
+    const hasBrandNames = labels.some(l => BRAND_COLORS[l]);
+    if (hasBrandNames) {
+        backgroundColors = labels.map((l, i) => getSmartColor(l, i));
+    } else {
+        // Just handle undefined
+        backgroundColors = labels.map((l, i) => {
+            if (!l || l === 'undefined' || l === 'null') return BRAND_COLORS['undefined'];
+            return (Array.isArray(colors) ? colors[i % colors.length] : colors);
+        });
+    }
 
     const config = {
         type: type,
         data: {
-            labels: Object.keys(dataObj),
+            labels: labels,
             datasets: [{
-                data: Object.values(dataObj),
-                backgroundColor: colors,
+                data: dataValues,
+                backgroundColor: backgroundColors,
                 borderWidth: 0
             }]
         },
@@ -401,8 +464,8 @@ function createChart(id, type, dataObj, colors) {
 
 function animateValue(id, end) {
     const obj = document.getElementById(id);
-    if(!obj) return;
-    if(typeof end === 'string') {
+    if (!obj) return;
+    if (typeof end === 'string') {
         obj.innerHTML = end;
         return;
     }
@@ -419,7 +482,7 @@ function animateValue(id, end) {
 }
 
 function formatDate(timestamp) {
-    if(!timestamp) return '--';
+    if (!timestamp) return '--';
     try {
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
@@ -434,39 +497,39 @@ function formatDate(timestamp) {
 
 function renderUsersTable() {
     const tbody = document.getElementById('users-tbody');
-    if(!tbody) return;
-    
+    if (!tbody) return;
+
     // Get filter values
     const searchInput = document.getElementById('search-input');
     const statusFilter = document.getElementById('status-filter');
     const searchTerm = searchInput?.value?.toLowerCase() || '';
     const statusValue = statusFilter?.value || 'all';
-    
+
     // Filter users
     let filteredUsers = [...allUsers];
-    
+
     if (searchTerm) {
-        filteredUsers = filteredUsers.filter(u => 
+        filteredUsers = filteredUsers.filter(u =>
             (u.email && u.email.toLowerCase().includes(searchTerm)) ||
             (u.displayName && u.displayName.toLowerCase().includes(searchTerm)) ||
             (u.name && u.name.toLowerCase().includes(searchTerm)) ||
             (u.id && u.id.toLowerCase().includes(searchTerm))
         );
     }
-    
+
     if (statusValue !== 'all') {
         const isCompleted = statusValue === 'true';
         filteredUsers = filteredUsers.filter(u => u.submitted === isCompleted);
     }
-    
+
     // Pagination
     const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE) || 1;
     if (currentPage > totalPages) currentPage = 1;
-    
+
     const start = (currentPage - 1) * USERS_PER_PAGE;
     const end = start + USERS_PER_PAGE;
     const slice = filteredUsers.slice(start, end);
-    
+
     tbody.innerHTML = slice.map(u => `
         <tr>
             <td style="font-family:monospace; color:var(--primary)">${u.id.substring(0, 12)}...</td>
@@ -476,7 +539,7 @@ function renderUsersTable() {
             <td>${formatDate(u.submittedAt)}</td>
         </tr>
     `).join('');
-    
+
     document.getElementById('page-indicator').innerText = `Page ${currentPage} of ${totalPages}`;
 }
 
@@ -484,14 +547,14 @@ function renderUsersTable() {
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const statusFilter = document.getElementById('status-filter');
-    
+
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             currentPage = 1;
             renderUsersTable();
         });
     }
-    
+
     if (statusFilter) {
         statusFilter.addEventListener('change', () => {
             currentPage = 1;
@@ -501,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.changePage = (pg) => {
-    if(pg < 1) return;
+    if (pg < 1) return;
     currentPage = pg;
     renderUsersTable();
 }
@@ -512,21 +575,28 @@ window.changePage = (pg) => {
 
 window.renderDetailedTable = () => {
     const tbody = document.getElementById('detailed-tbody');
-    if(!tbody) return;
+    if (!tbody) return;
 
     // Generate Rows
     const rowsHTML = allResponses.map(r => {
         const user = allUsers.find(u => u.id === r.id) || {};
-        
+
         const formatMulti = (val) => {
-            if(!val) return '<span style="color:var(--text-muted)">-</span>';
-            if(Array.isArray(val)) return val.map(v => `<span class="tag">${v}</span>`).join(' ');
+            if (!val) return '<span style="color:var(--text-muted)">-</span>';
+            if (Array.isArray(val)) return val.map(v => `<span class="tag">${v}</span>`).join(' ');
             return val;
         };
 
         return `
             <tr>
-                <td style="font-family:monospace; color:var(--primary); font-weight:600;">${r.id.substring(0, 10)}...</td>
+                <!-- DELETE ACTION COLUMN -->
+                <td>
+                    <button class="btn-icon-danger" onclick="deleteResponse('${r.id}')" title="Delete Response">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                    </button>
+                </td>
+                <td style="font-weight:600; color:var(--text-primary);">${user.displayName || user.name || '-'}</td>
+                <td>${user.email || '-'}</td>
                 <td><span class="status-check status-${user.submitted}">${user.submitted ? 'Done' : 'Pending'}</span></td>
                 <td>${formatDate(user.submittedAt)}</td>
                 <!-- Section A -->
@@ -570,6 +640,7 @@ window.renderDetailedTable = () => {
     }).join('');
 
     tbody.innerHTML = rowsHTML;
+    lucide.createIcons();
 }
 
 // ============================================
@@ -578,7 +649,7 @@ window.renderDetailedTable = () => {
 
 window.renderDetailedCharts = () => {
     const grid = document.getElementById('detailed-charts-grid');
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = '';
 
     // All questions with their types
@@ -617,15 +688,15 @@ window.renderDetailedCharts = () => {
         const counts = {};
         allResponses.forEach(r => {
             const val = r[q.id];
-            if(!val) return;
-            if(q.multi && Array.isArray(val)) {
+            if (!val) return;
+            if (q.multi && Array.isArray(val)) {
                 val.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
             } else {
                 counts[val] = (counts[val] || 0) + 1;
             }
         });
 
-        if(Object.keys(counts).length === 0) return;
+        if (Object.keys(counts).length === 0) return;
 
         // Create DOM Element
         const div = document.createElement('div');
@@ -708,14 +779,14 @@ window.runExport = () => {
     const scope = document.getElementById('export-scope').value;
     const spssMode = document.getElementById('export-spss-mode').checked;
     const includeCodebook = document.getElementById('export-codebook').checked;
-    
+
     console.log(`Export: format=${format}, scope=${scope}, spss=${spssMode}, codebook=${includeCodebook}`);
-    
+
     if (!allResponses || allResponses.length === 0) {
         alert("No data available to export.");
         return;
     }
-    
+
     // Filter responses by scope
     let responses = [...allResponses];
     if (scope === 'completed') {
@@ -729,15 +800,15 @@ window.runExport = () => {
             return !user || user.submitted !== true;
         });
     }
-    
+
     if (responses.length === 0) {
         alert(`No ${scope} responses found.`);
         return;
     }
-    
+
     // Build headers
-    let headers = ['User_ID', 'Email', 'Name', 'Status', 'Submitted_At'];
-    
+    let headers = ['Name', 'Email', 'Status', 'Submitted_At'];
+
     if (spssMode) {
         // Add binary columns for multi-select
         SURVEY_CODEBOOK.forEach(q => {
@@ -752,7 +823,7 @@ window.runExport = () => {
     } else {
         SURVEY_CODEBOOK.forEach(q => headers.push(q.key));
     }
-    
+
     // Build rows
     const rows = responses.map(r => {
         const user = allUsers.find(u => u.id === r.id) || {};
@@ -763,7 +834,7 @@ window.runExport = () => {
             'Status': user.submitted ? 'Completed' : 'In Progress',
             'Submitted_At': user.submittedAt ? formatDate(user.submittedAt) : ''
         };
-        
+
         if (spssMode) {
             SURVEY_CODEBOOK.forEach(q => {
                 if (MULTI_SELECT_FIELDS[q.key]) {
@@ -782,10 +853,10 @@ window.runExport = () => {
         }
         return row;
     });
-    
+
     // Close modal
     closeExportModal();
-    
+
     // Export
     if (format === 'xlsx') {
         exportXLSX(headers, rows, includeCodebook);
@@ -801,24 +872,55 @@ function formatValue(val) {
 }
 
 // ============================================
+// DELETE FUNCTIONALITY
+// ============================================
+
+window.deleteResponse = async (userId) => {
+    if (!confirm('Are you sure you want to DELETE this response? \n\nThis will:\n1. Remove the survey data permanently.\n2. Reset the user status to "In Progress".\n3. Remove it from all charts and exports.')) {
+        return;
+    }
+
+    try {
+        // 1. Delete from Responses Collection
+        await db.collection('responses').doc(userId).delete();
+
+        // 2. Update User Document (Reset Status)
+        // We use merge: true to avoid overwriting other user fields
+        await db.collection('users').doc(userId).set({
+            submitted: false,
+            submittedAt: null
+        }, { merge: true });
+
+        // Toast or specific UI feedback is handled by the generic rendering loop 
+        // because the Firestore listener will trigger refreshDashboard() automatically.
+        alert('Response deleted successfully.');
+
+    } catch (error) {
+        console.error("Delete Error:", error);
+        alert('Failed to delete response: ' + error.message);
+    }
+}
+
+
+// ============================================
 // XLSX EXPORT (with SheetJS)
 // ============================================
 
 function exportXLSX(headers, rows, includeCodebook) {
     const wb = XLSX.utils.book_new();
-    
+
     // Data Sheet
     const wsData = rows.map(r => headers.map(h => r[h] ?? ''));
     wsData.unshift(headers);
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    
+
     // Column widths
     ws['!cols'] = headers.map((h, i) => ({
         wch: Math.max(h.length, 15)
     }));
-    
+
     XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses');
-    
+
     // Codebook Sheet
     if (includeCodebook) {
         const codebookData = [['Column Name', 'Label', 'Question Text', 'Options']];
@@ -834,9 +936,9 @@ function exportXLSX(headers, rows, includeCodebook) {
         wsCodebook['!cols'] = [{ wch: 20 }, { wch: 20 }, { wch: 50 }, { wch: 40 }];
         XLSX.utils.book_append_sheet(wb, wsCodebook, 'Codebook');
     }
-    
+
     // Download
-    const filename = `sandeshaya_survey_${new Date().toISOString().slice(0,10)}.xlsx`;
+    const filename = `sandeshaya_survey_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(wb, filename);
     console.log(`Exported ${rows.length} rows to ${filename}`);
 }
@@ -854,14 +956,14 @@ function exportCSV(headers, rows) {
             return `"${val}"`;
         }).join(',');
     });
-    
+
     const quotedHeaders = headers.map(h => `"${h}"`).join(',');
     const csvContent = '\uFEFF' + [quotedHeaders, ...csvRows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sandeshaya_survey_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `sandeshaya_survey_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

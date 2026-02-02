@@ -15,7 +15,7 @@ const ACBUHistory = () => {
                 <h2 className="text-maroon text-center mb-4 font-bold">{t('unit.title')}</h2>
                 <div className="gold-divider mb-12" />
 
-                <div className="max-w-3xl mx-auto space-y-6 text-gray-700 text-base sm:text-lg leading-relaxed text-justify">
+                <div className="max-w-3xl mx-auto space-y-6 text-gray-700 text-base sm:text-lg leading-relaxed text-justify hyphens-auto">
                     <p>{t('unit.para1')}</p>
                     <p>{t('unit.para2')}</p>
                     <p>{t('unit.para3')}</p>

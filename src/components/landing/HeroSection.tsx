@@ -26,7 +26,7 @@ const HeroSection = ({ onImageLoad }: HeroSectionProps) => {
         src={heroBg}
         alt=""
         onLoad={handleImageLoad}
-        className={`absolute inset-0 w-full h-full object-cover object-[85%_top] sm:object-[center_top] transition-all duration-[2000ms] ease-out ${isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-105 blur-xl"
+        className={`absolute inset-0 w-full h-full object-cover object-[95%_top] sm:object-[center_top] transition-all duration-[2000ms] ease-out ${isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-105 blur-xl"
           }`}
       />
 

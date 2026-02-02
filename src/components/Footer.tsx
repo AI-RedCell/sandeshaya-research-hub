@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Youtube, Twitter, Mail, MapPin } from "lucide-react";
+import { Facebook, Youtube, Mail, MapPin } from "lucide-react";
 
 // Import logos safely
 let schoolLogoSrc: string | null = null;
@@ -11,22 +11,40 @@ try {
   acbuLogoSrc = null;
 }
 
+// Custom TikTok Icon (Lucide style)
+const TikTok = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
 const Footer = () => {
   const socialLinks = [
-    { icon: Facebook, href: "https://facebook.com/sandeshaya", label: "Facebook" },
-    { icon: Instagram, href: "https://instagram.com/sandeshaya", label: "Instagram" },
-    { icon: Youtube, href: "https://youtube.com/sandeshaya", label: "YouTube" },
-    { icon: Twitter, href: "https://twitter.com/sandeshaya", label: "Twitter" },
+    { icon: Facebook, href: "https://www.facebook.com/share/1AbiYuusSU/", label: "Facebook" },
+    { icon: Youtube, href: "https://youtube.com/@acbuonline?si=0i0k8cLojxeki7a_", label: "YouTube" },
+    { icon: TikTok, href: "https://www.tiktok.com/@acbuonline?_r=1&_t=ZS-93VBK0hv8V8", label: "TikTok" },
+    { icon: Mail, href: "mailto:acbuofficial@gmail.com", label: "Email" },
   ];
 
   return (
     <footer className="bg-maroon text-white">
       {/* Gold accent line */}
       <div className="h-1 bg-secondary" />
-      
+
       <div className="container-narrow py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          
+
           {/* Logos and School Info */}
           <div className="text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
@@ -55,14 +73,14 @@ const Footer = () => {
               Sandeshaya - Youth Media Initiative
             </p>
           </div>
-          
+
           {/* Contact Info */}
           <div className="text-center">
             <h4 className="font-semibold text-secondary mb-4">Contact</h4>
             <div className="space-y-2 text-sm text-white/80">
               <div className="flex items-center justify-center gap-2">
                 <Mail className="w-4 h-4" />
-                <span>sandeshaya@anandacollege.edu.lk</span>
+                <span>acbuofficial@gmail.com</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <MapPin className="w-4 h-4" />
@@ -70,7 +88,7 @@ const Footer = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Social Links */}
           <div className="text-center md:text-right">
             <h4 className="font-semibold text-secondary mb-4">Follow Us</h4>
@@ -93,10 +111,10 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Gold divider */}
         <div className="gold-line-accent my-8 opacity-50" />
-        
+
         {/* Copyright */}
         <div className="text-center text-sm text-white/60">
           <p>© {new Date().getFullYear()} Sandeshaya - Ananda College Broadcasting Unit. All rights reserved.</p>

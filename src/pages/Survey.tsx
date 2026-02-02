@@ -55,7 +55,7 @@ const surveyStructure: Section[] = [
     title: 'Section A',
     questions: [
       { id: 'grade', type: 'radio', translationKey: 'q.grade', options: ['q.grade.opt1', 'q.grade.opt2', 'q.grade.opt3', 'q.grade.opt4'], required: true },
-      { id: 'district', type: 'select', translationKey: 'q.district', options: ['q.district.ampara', 'q.district.anuradhapura', 'q.district.badulla', 'q.district.batticaloa', 'q.district.colombo', 'q.district.galle', 'q.district.gampaha', 'q.district.hambantota', 'q.district.jaffna', 'q.district.kalutara', 'q.district.kandy', 'q.district.kegalle', 'q.district.kilinochchi', 'q.district.kurunegala', 'q.district.mannar', 'q.district.matale', 'q.district.matara', 'q.district.monaragala', 'q.district.mullaitivu', 'q.district.nuwaraeliya', 'q.district.polonnaruwa', 'q.district.puttalam', 'q.district.ratnapura', 'q.district.trincomalee', 'q.district.vavuniya'], required: true },
+      { id: 'district', type: 'select', translationKey: 'q.district', options: ['q.district.ampara', 'q.district.anuradhapura', 'q.district.badulla', 'q.district.batticaloa', 'q.district.colombo', 'q.district.galle', 'q.district.gampaha', 'q.district.hambantota', 'q.district.jaffna', 'q.district.kalutara', 'q.district.kandy', 'q.district.kegalle', 'q.district.northern_province', 'q.district.kurunegala', 'q.district.matale', 'q.district.matara', 'q.district.monaragala', 'q.district.nuwaraeliya', 'q.district.polonnaruwa', 'q.district.puttalam', 'q.district.ratnapura', 'q.district.trincomalee'], required: true },
       { id: 'school_type', type: 'radio', translationKey: 'q.school_type', options: ['q.school_type.opt1', 'q.school_type.opt2', 'q.school_type.opt3'], required: true },
     ]
   },
@@ -212,6 +212,7 @@ const englishValues: Record<string, Record<string, string>> = {
   'q.current_state.opt2': { value: 'Getting worse' },
   'q.current_state.opt3': { value: 'No change' },
   'q.current_state.opt4': { value: 'Not sure' },
+  'q.district.northern_province': { value: 'Mullaitivu / Kilinochchi / Mannar / Vavuniya' },
 };
 
 const getEnglishValue = (optionKey: string): string => {
@@ -268,6 +269,34 @@ const Survey = () => {
       const current = (prev[questionId] as string[]) || [];
       const englishVal = getEnglishValue(optionKey);
 
+      // Special logic for Question 9 (ethics_meaning)
+      // "I don't know" (opt5) should be mutually exclusive
+      if (questionId === 'ethics_meaning') {
+        const dontKnowVal = getEnglishValue('q.ethics_meaning.opt5'); // "Dont know"
+
+        if (englishVal === dontKnowVal) {
+          // User toggled "Dont know"
+          if (checked) {
+            // Turning ON "Dont know" -> Clear everything else
+            return { ...prev, [questionId]: [dontKnowVal] };
+          } else {
+            // Turning OFF "Dont know" -> Just empty
+            return { ...prev, [questionId]: [] };
+          }
+        } else {
+          // User toggled a normal option (1-4)
+          if (checked) {
+            // Turning ON a normal option -> Remove "Dont know" and add this
+            const newValue = [...current.filter(v => v !== dontKnowVal), englishVal];
+            return { ...prev, [questionId]: newValue };
+          } else {
+            // Turning OFF a normal option
+            return { ...prev, [questionId]: current.filter(v => v !== englishVal) };
+          }
+        }
+      }
+
+      // Default behavior for other questions
       if (checked) {
         return { ...prev, [questionId]: [...current, englishVal] };
       } else {

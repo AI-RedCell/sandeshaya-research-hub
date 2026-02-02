@@ -212,6 +212,7 @@ export const en = {
   'q.district.polonnaruwa': 'Polonnaruwa',
   'q.district.puttalam': 'Puttalam',
   'q.district.ratnapura': 'Ratnapura',
+  'q.district.northern_province': 'Mullaitivu / Kilinochchi / Mannar / Vavuniya',
   'q.district.trincomalee': 'Trincomalee',
   'q.district.vavuniya': 'Vavuniya',
 };

@@ -191,6 +191,7 @@ export const ta: Record<TranslationKey, string> = {
   'q.district.polonnaruwa': 'பொலன்னறுவை',
   'q.district.puttalam': 'புத்தளம்',
   'q.district.ratnapura': 'இரத்தினபுரி',
+  'q.district.northern_province': 'முல்லைத்தீவு / கிளிநொச்சி / மன்னார் / வவுனியா',
   'q.district.trincomalee': 'திருகோணமலை',
   'q.district.vavuniya': 'வவுனியா',
 };

@@ -244,7 +244,7 @@
         </p>
     </div>
 
-    <script src="firebase-config.js"></script>
+    <script src="/dashboard/firebase-config.js"></script>
     <script>
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -289,21 +289,21 @@
             loginBtn.disabled = true;
 
             try {
+                // Ensure Session Only Persistence (clears on tab close)
+                await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
                 // Optional: Check admin collection
                 // Uncomment for production:
-                /*
                 const adminDoc = await db.collection('admins').doc(user.uid).get();
-                if(!adminDoc.exists) {
+                if (!adminDoc.exists) {
                     await auth.signOut();
                     showError('Access denied. You are not an authorized admin.');
                     loadingOverlay.classList.remove('active');
                     loginBtn.disabled = false;
                     return;
                 }
-                */
 
                 showSuccess('Login successful! Redirecting...');
                 setTimeout(() => {

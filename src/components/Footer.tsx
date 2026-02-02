@@ -1,4 +1,4 @@
-import { Facebook, Youtube, Mail, MapPin } from "lucide-react";
+import { Facebook, Instagram, Youtube, Mail, MapPin } from "lucide-react";
 
 // Import logos safely
 let schoolLogoSrc: string | null = null;
@@ -32,6 +32,7 @@ const TikTok = ({ className, strokeWidth = 1.5 }: { className?: string; strokeWi
 const Footer = () => {
   const socialLinks = [
     { icon: Facebook, href: "https://www.facebook.com/share/1AbiYuusSU/", label: "Facebook" },
+    { icon: Instagram, href: "https://www.instagram.com/acbu.online?igsh=MXFmcDh3dnB4bjJ2dg==", label: "Instagram" },
     { icon: Youtube, href: "https://youtube.com/@acbuonline?si=0i0k8cLojxeki7a_", label: "YouTube" },
     { icon: TikTok, href: "https://www.tiktok.com/@acbuonline?_r=1&_t=ZS-93VBK0hv8V8", label: "TikTok" },
     { icon: Mail, href: "mailto:acbuofficial@gmail.com", label: "Email" },
@@ -90,9 +91,9 @@ const Footer = () => {
           </div>
 
           {/* Social Links */}
-          <div className="text-center md:text-right">
+          <div className="text-center">
             <h4 className="font-semibold text-secondary mb-4">Follow Us</h4>
-            <div className="flex items-center justify-center md:justify-end gap-4">
+            <div className="flex items-center justify-center gap-4">
               {socialLinks.map((social, index) => {
                 const Icon = social.icon;
                 return (

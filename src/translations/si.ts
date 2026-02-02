@@ -114,7 +114,7 @@ export const si: Record<TranslationKey, string> = {
   'q.problematic_platform.opt2': 'සමාජ මාධ්‍ය සහ වෙබ් අඩවි',
   'q.problematic_platform.opt3': 'ගුවන්විදුලි නාලිකා',
   'q.problematic_platform.opt4': 'පුවත්පත්',
-  'q.problematic_platform.opt5': 'හරියටම කියන්න බැහැ',
+  'q.problematic_platform.opt5': 'නිශ්චිතව කිව නොහැක',
   'q.ignored_ethics': 'වැඩි අවධානයක් හෝ ප්‍රසිද්ධියක් ලබා ගැනීමේ අරමුණින් ප්‍රසිද්ධ මාධ්‍ය ආයතන හා මාධ්‍යකරුවන් ඇතැම් විට මාධ්‍ය සදාචාරය නොසලකා හරින බව ඔබ සිතනවා ද?',
   'q.trust_level': 'ඔබ ශ්‍රී ලාංකේය මාධ්‍ය කෙරෙහි කෙතරම් දුරට විශ්වාසය තබනවාද?',
   'q.trust_level.opt1': 'ඉතා ඉහළ මට්ටමකින්',

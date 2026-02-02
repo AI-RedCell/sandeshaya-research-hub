@@ -39,7 +39,7 @@ export const ta: Record<TranslationKey, string> = {
   'integrity.title': 'ஆராய்ச்சி நரே்மை',
   'integrity.text': 'இந்த ஆராய்ச்சி கடுமயைான நறெிமுறை வழிகாட்டுதல்களை பின்பற்றுகிறது. அனதை்து பதில்களும் அநாமதயமோனவை.',
   'isac.title': 'ISAC’25 Awards',
-  'isac.text': 'The ceremony also features the presentation of awards for ISAC’25, Sri Lanka\'s largest school media competition.',
+  'isac.text': 'இந்த விழாவில், பள்ளி ஊடகத் துறையில் திறமைகளைக் கண்டறிந்து மேம்படுத்துவதற்காக அர்ப்பணிக்கப்பட்ட இலங்கையின் மிகப்பெரிய பள்ளி ஊடகப் போட்டியான ISAC’25க்கான விருதுகள் வழங்கும் விழாவும் இடம்பெறுகிறது.',
   'cta.title': 'பங்கறே்க தயாரா?',
   'cta.text': 'உங்கள் குரல் முக்கியம். இந்த தசேிய ஆராய்ச்சியில் பங்கறே்கவும்.',
   'footer.text': 'சந்தசயோ – ஆனந்த கல்லூரி ஒலிபரப்பு பிரிவு',

@@ -140,3 +140,5 @@ Thumbs.db
 # Local environment files
 .env.local
 .env.*.local
+
+.agent

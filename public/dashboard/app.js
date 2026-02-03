@@ -575,9 +575,26 @@ window.changePage = (pg) => {
 
 window.renderDetailedTable = () => {
     const tbody = document.getElementById('detailed-tbody');
-    if (!tbody) return;
+    const thead = document.querySelector('.detailed-table thead tr'); // Get table header row
+    if (!tbody || !thead) return;
 
-    // Generate Rows
+    // 1. DYNAMICALLY GENERATE TABLE HEADERS
+    // Keep the fixed columns (User, Email, Status, Time) and append dynamic question columns
+    let headerHTML = `
+        <th>Action</th>
+        <th>User</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Submitted At</th>
+    `;
+
+    SURVEY_CODEBOOK.forEach(item => {
+        headerHTML += `<th>${item.label}</th>`;
+    });
+    thead.innerHTML = headerHTML;
+
+
+    // 2. GENERATE ROWS DYNAMICALLY
     const rowsHTML = allResponses.map(r => {
         const user = allUsers.find(u => u.id === r.id) || {};
 
@@ -587,9 +604,9 @@ window.renderDetailedTable = () => {
             return val;
         };
 
-        return `
+        // Fixed Columns
+        let row = `
             <tr>
-                <!-- DELETE ACTION COLUMN -->
                 <td>
                     <button class="btn-icon-danger" onclick="deleteResponse('${r.id}')" title="Delete Response">
                         <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
@@ -599,44 +616,28 @@ window.renderDetailedTable = () => {
                 <td>${user.email || '-'}</td>
                 <td><span class="status-check status-${user.submitted}">${user.submitted ? 'Done' : 'Pending'}</span></td>
                 <td>${formatDate(user.submittedAt)}</td>
-                <!-- Section A -->
-                <td>${r.age_group || '-'}</td>
-                <td>${r.grade || '-'}</td>
-                <td>${r.province || '-'}</td>
-                <td>${r.district || '-'}</td>
-                <td>${r.school_type || '-'}</td>
-                <!-- Section B -->
-                <td>${r.primary_device || '-'}</td>
-                <td>${r.media_hours || '-'}</td>
-                <td>${formatMulti(r.media_sources)}</td>
-                <td>${formatMulti(r.social_platforms)}</td>
-                <!-- Section C -->
-                <td>${r.heard_ethics || '-'}</td>
-                <td>${formatMulti(r.ethics_meaning)}</td>
-                <td>${r.learned_ethics || '-'}</td>
-                <td>${r.ethics_important || '-'}</td>
-                <!-- Section D -->
-                <td>${r.biggest_problem || '-'}</td>
-                <td>${r.seen_unethical || '-'}</td>
-                <td>${r.affected_by_fake || '-'}</td>
-                <td>${r.verify_news || '-'}</td>
-                <!-- Section E -->
-                <td>${r.trust_media || '-'}</td>
-                <td>${r.trust_social || '-'}</td>
-                <td>${r.media_influence || '-'}</td>
-                <td>${r.responsible_media || '-'}</td>
-                <!-- Section F -->
-                <td>${r.know_regulations || '-'}</td>
-                <td>${r.need_regulation || '-'}</td>
-                <td>${r.who_regulate || '-'}</td>
-                <!-- Section G -->
-                <td>${formatMulti(r.media_better)}</td>
-                <td>${r.youth_role || '-'}</td>
-                <td>${r.would_report || '-'}</td>
-                <td>${r.future_media || '-'}</td>
-                <td style="max-width:300px; white-space:normal;">${r.additional_thoughts || '-'}</td>
-            </tr>
         `;
+
+        // Dynamic Columns from Codebook
+        SURVEY_CODEBOOK.forEach(item => {
+            const val = r[item.key];
+            let displayVal = val;
+
+            if (Array.isArray(val)) {
+                displayVal = formatMulti(val);
+            } else if (val === undefined || val === null || val === '') {
+                displayVal = '<span style="color:var(--text-muted)">-</span>';
+            }
+
+            // Allow long text to wrap for comment fields
+            const isLongText = item.key.includes('comment') || item.key.includes('thoughts') || item.key.includes('suggestions');
+            const style = isLongText ? 'max-width:300px; white-space:normal; font-size:11px;' : '';
+
+            row += `<td style="${style}">${displayVal}</td>`;
+        });
+
+        row += `</tr>`;
+        return row;
     }).join('');
 
     tbody.innerHTML = rowsHTML;
@@ -727,29 +728,68 @@ const SURVEY_CODEBOOK = [
     { key: 'district', label: 'District', question: 'Which district are you from?', options: null },
     { key: 'school_type', label: 'School Type', question: 'What type of school do you attend?', options: ['Government', 'Private', 'International', 'Other'] },
     { key: 'primary_device', label: 'Primary Device', question: 'What is your primary device for consuming media?', options: ['Smartphone', 'Tablet', 'Laptop', 'Desktop', 'TV', 'Other'] },
+    { key: 'own_device', label: 'Own Device', question: 'Do you own your own device?', options: ['Yes', 'No'] },
+    { key: 'internet_access', label: 'Internet Access', question: 'How do you access the internet?', options: ['Home Wi-Fi', 'Mobile Data', 'School', 'Public Wi-Fi'] },
     { key: 'media_hours', label: 'Media Hours', question: 'How many hours per day do you spend on media?', options: ['Less than 1 hour', '1-2 hours', '2-4 hours', '4-6 hours', 'More than 6 hours'] },
     { key: 'media_sources', label: 'Media Sources', question: 'What are your primary sources of news?', options: ['TV News', 'Newspapers', 'Social Media', 'Websites', 'Radio', 'Friends/Family'], multi: true },
     { key: 'social_platforms', label: 'Social Platforms', question: 'Which social media platforms do you use?', options: ['Facebook', 'Instagram', 'TikTok', 'YouTube', 'WhatsApp', 'Twitter/X', 'Snapchat', 'Other'], multi: true },
+    { key: 'problematic_platform', label: 'Problematic Platform', question: 'Which platform has the most problematic content?', options: null },
+
+    // Ethics Section
     { key: 'heard_ethics', label: 'Heard Ethics', question: 'Have you heard of media ethics?', options: ['Yes', 'No', 'Not sure'] },
     { key: 'ethics_meaning', label: 'Ethics Meaning', question: 'What does media ethics mean to you?', options: null, multi: true },
     { key: 'learned_ethics', label: 'Learned Ethics', question: 'Have you learned about media ethics in school?', options: ['Yes', 'No'] },
-    { key: 'ethics_important', label: 'Ethics Important', question: 'Do you think media ethics is important?', options: ['Very Important', 'Somewhat Important', 'Not Important', 'Not sure'] },
+    { key: 'school_curriculum', label: 'School Curriculum', question: 'Is media ethics part of your school curriculum?', options: ['Yes', 'No'] },
+    { key: 'school_curriculum_comment', label: 'Curriculum Comment', question: 'Comments on school curriculum', options: null },
+    { key: 'ethics_importance', label: 'Ethics Importance', question: 'Do you think media ethics is important?', options: ['Very Important', 'Somewhat Important', 'Not Important', 'Not sure'] },
+
+    // Issues Section
     { key: 'biggest_problem', label: 'Biggest Problem', question: 'What is the biggest ethical problem in Sri Lankan media?', options: ['Fake news', 'Bias', 'Sensationalism', 'Privacy violations', 'Hate speech', 'Other'] },
     { key: 'seen_unethical', label: 'Seen Unethical', question: 'Have you seen unethical content in media?', options: ['Yes, often', 'Yes, sometimes', 'Rarely', 'Never'] },
+    { key: 'unethical_trust', label: 'Unethical Trust Impact', question: 'Does unethical content affect your trust?', options: ['Yes', 'No'] },
     { key: 'affected_by_fake', label: 'Affected by Fake', question: 'Have you been affected by fake news?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'fake_news_impact', label: 'Fake News Impact', question: 'How has fake news impacted you?', options: null },
+    { key: 'misleading_content', label: 'Misleading Content', question: 'Have you seen misleading content?', options: ['Yes', 'No'] },
+    { key: 'misleading_content_comment', label: 'Misleading Comment', question: 'Comments on misleading content', options: null },
     { key: 'verify_news', label: 'Verify News', question: 'Do you verify news before sharing?', options: ['Always', 'Sometimes', 'Rarely', 'Never'] },
-    { key: 'trust_media', label: 'Trust Media', question: 'How much do you trust Sri Lankan media?', options: ['Fully trust', 'Somewhat trust', 'Neutral', 'Somewhat distrust', 'Fully distrust'] },
+    { key: 'unfair_content', label: 'Unfair Content', question: 'Have you seen unfair reporting?', options: ['Yes', 'No'] },
+    { key: 'unfair_content_comment', label: 'Unfair Comment', question: 'Comments on unfair content', options: null },
+    { key: 'unethical_impact_youth', label: 'Impact on Youth', question: 'Does unethical media impact youth negatively?', options: ['Yes', 'No'] },
+    { key: 'unethical_impact_youth_comment', label: 'Impact Comment', question: 'Comments on youth impact', options: null },
+
+    // Trust Section
+    { key: 'trust_media', label: 'Trust Media', question: 'How much do you trust Sri Lankan media?', options: ['Run by Government', 'Private', 'Independent'] },
+    { key: 'trust_level', label: 'Trust Level', question: 'Overall trust level?', options: ['High', 'Moderate', 'Low'] },
+    { key: 'newspaper_ethics', label: 'Newspaper Ethics', question: 'Rating of Newspaper Ethics', options: null },
+    { key: 'tv_ethics', label: 'TV Ethics', question: 'Rating of TV Ethics', options: null },
+    { key: 'radio_ethics', label: 'Radio Ethics', question: 'Rating of Radio Ethics', options: null },
+    { key: 'social_web_ethics', label: 'Social/Web Ethics', question: 'Rating of Social/Web Ethics', options: null },
     { key: 'trust_social', label: 'Trust Social', question: 'How much do you trust social media news?', options: ['Fully trust', 'Somewhat trust', 'Neutral', 'Somewhat distrust', 'Fully distrust'] },
     { key: 'media_influence', label: 'Media Influence', question: 'How much does media influence your opinions?', options: ['A lot', 'Somewhat', 'Very little', 'Not at all'] },
     { key: 'responsible_media', label: 'Responsible Media', question: 'Do you think media is responsible for shaping society?', options: ['Yes', 'No', 'Partially'] },
+    { key: 'responsibility_who', label: 'Who Responsible', question: 'Who is most responsible?', options: null },
+
+    // Regulation Section
     { key: 'know_regulations', label: 'Know Regulations', question: 'Do you know about media regulations in Sri Lanka?', options: ['Yes', 'No', 'Somewhat'] },
+    { key: 'know_laws', label: 'Know Laws', question: 'Are you aware of media laws?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'laws_adequate', label: 'Laws Adequate', question: 'Are current laws adequate?', options: ['Yes', 'No'] },
+    { key: 'laws_adequate_comment', label: 'Laws Comment', question: 'Comments on laws adequacy', options: null },
     { key: 'need_regulation', label: 'Need Regulation', question: 'Do you think stronger regulations are needed?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'new_laws_suggestions', label: 'Law Suggestions', question: 'Suggestions for new laws', options: null },
     { key: 'who_regulate', label: 'Who Regulate', question: 'Who should regulate media?', options: ['Government', 'Independent body', 'Media itself', 'Public', 'No regulation needed'] },
+    { key: 'question_authenticity', label: 'Question Authenticity', question: 'Do you question the authenticity of news?', options: ['Always', 'Sometimes', 'Never'] },
+
+    // Future Vision
     { key: 'media_better', label: 'Media Better', question: 'How can media be made better?', options: null, multi: true },
+    { key: 'best_solution', label: 'Best Solution', question: 'What is the best solution for ethical media?', options: null },
+    { key: 'current_state', label: 'Current State', question: 'How do you view the current state of media?', options: null },
+    { key: 'desired_change', label: 'Desired Change', question: 'What change do you desire?', options: null },
     { key: 'youth_role', label: 'Youth Role', question: 'Should youth have a say in media ethics?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'student_voice', label: 'Student Voice', question: 'Is student voice heard?', options: ['Yes', 'No'] },
+    { key: 'student_voice_comment', label: 'Voice Comment', question: 'Comments on student voice', options: null },
     { key: 'would_report', label: 'Would Report', question: 'Would you report unethical content?', options: ['Yes', 'No', 'Maybe'] },
     { key: 'future_media', label: 'Future Media', question: 'What is your vision for future media?', options: null },
-    { key: 'additional_thoughts', label: 'Additional Thoughts', question: 'Any additional thoughts?', options: null }
+    { key: 'other_thoughts', label: 'Other Thoughts', question: 'Any additional thoughts?', options: null }
 ];
 
 // Multi-select fields for SPSS binary splitting

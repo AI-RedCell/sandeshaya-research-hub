@@ -3,9 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/firebase";
-import { setPersistence, browserSessionPersistence } from "firebase/auth";
 
 // Import ACBU logo safely
 let acbuLogoSrc: string | null = null;
@@ -18,34 +15,53 @@ try {
 const Login = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
-  const { signInWithGoogle, user, loading } = useAuth();
+  const { signInWithGoogle, user, loading, hasSubmitted } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already logged in
   useEffect(() => {
-    console.log("Login Page Effect - Loading:", loading, "User:", user?.email);
     if (!loading && user) {
-      console.log("User detected in Login page. Redirecting to /survey...");
-      navigate('/survey');
+      console.log("✓ User detected, redirecting...", { hasSubmitted });
+      if (hasSubmitted) {
+        navigate('/submitted', { replace: true });
+      } else {
+        navigate('/survey', { replace: true });
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, hasSubmitted, navigate]);
 
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setGoogleError(null);
     try {
-      // await setPersistence(auth, browserSessionPersistence); // REMOVED: Default to LOCAL for better redirect stability
       await signInWithGoogle();
-      // Redirect is handled in signInWithGoogle
+      // Navigation will happen automatically via useEffect when user state updates
     } catch (error: unknown) {
       console.error("Google sign-in error:", error);
       const errorMessage = error instanceof Error ? error.message : "Google sign-in failed. Please try again.";
-      setGoogleError(errorMessage);
-    } finally {
+      
+      // Check if it's a popup blocked error
+      if (errorMessage.includes('popup') || errorMessage.includes('blocked')) {
+        setGoogleError("Popup was blocked! Please allow popups for this site in your browser settings, then try again.");
+      } else {
+        setGoogleError(errorMessage);
+      }
       setIsGoogleLoading(false);
     }
   };
+
+  // Show loading if auth is still initializing
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-maroon" />
+          <p className="mt-2 text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen overflow-hidden bg-background flex flex-col">

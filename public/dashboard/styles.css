@@ -847,3 +847,20 @@ body {
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-core);
 }.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; display: inline-block; margin-right: 8px; } @keyframes spin { to { transform: rotate(360deg); } } 
+
+/* ============================================
+   STICKY COLUMNS
+   ============================================ */
+.sticky-col {
+  position: sticky !important;
+  left: 0;
+  z-index: 10;
+  background: var(--bg-card);
+  border-right: 2px solid var(--border-subtle) !important;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+th.sticky-col {
+  z-index: 20; /* Higher than tbody sticky cells */
+  background: #F9FAFB !important; /* Match header bg */
+}

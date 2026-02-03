@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -18,15 +18,22 @@ try {
 const Login = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/survey');
+    }
+  }, [user, loading, navigate]);
 
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setGoogleError(null);
     try {
-      // Set persistence to SESSION only (cleared on browser/tab close)
-      await setPersistence(auth, browserSessionPersistence);
+      // await setPersistence(auth, browserSessionPersistence); // REMOVED: Default to LOCAL for better redirect stability
       await signInWithGoogle();
       // Redirect is handled in signInWithGoogle
     } catch (error: unknown) {

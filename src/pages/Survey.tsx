@@ -371,6 +371,7 @@ const Survey = () => {
     try {
       // Save response to Firestore (NO PII - just answers)
       await setDoc(doc(db, 'responses', user.uid), {
+        userId: user.uid,
         ...responses,
         submittedAt: serverTimestamp(),
       });

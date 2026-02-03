@@ -466,7 +466,7 @@ function animateValue(id, end) {
     const obj = document.getElementById(id);
     if (!obj) return;
     if (typeof end === 'string') {
-        obj.textContent = end;
+        obj.innerHTML = end;
         return;
     }
     const start = 0;
@@ -475,7 +475,7 @@ function animateValue(id, end) {
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.textContent = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
         if (progress < 1) window.requestAnimationFrame(step);
     };
     window.requestAnimationFrame(step);
@@ -530,44 +530,15 @@ function renderUsersTable() {
     const end = start + USERS_PER_PAGE;
     const slice = filteredUsers.slice(start, end);
 
-    // Clear existing content
-    tbody.innerHTML = '';
-
-    slice.forEach(u => {
-        const tr = document.createElement('tr');
-
-        // ID Column
-        const tdId = document.createElement('td');
-        tdId.style.fontFamily = 'monospace';
-        tdId.style.color = 'var(--primary)';
-        tdId.textContent = u.id.substring(0, 12) + '...';
-        tr.appendChild(tdId);
-
-        // Email Column
-        const tdEmail = document.createElement('td');
-        tdEmail.textContent = u.email || '--';
-        tr.appendChild(tdEmail);
-
-        // Name Column
-        const tdName = document.createElement('td');
-        tdName.textContent = u.displayName || u.name || '--';
-        tr.appendChild(tdName);
-
-        // Status Column
-        const tdStatus = document.createElement('td');
-        const spanStatus = document.createElement('span');
-        spanStatus.className = `status-check status-${u.submitted}`;
-        spanStatus.textContent = u.submitted ? 'Completed' : 'In Progress';
-        tdStatus.appendChild(spanStatus);
-        tr.appendChild(tdStatus);
-
-        // Date Column
-        const tdDate = document.createElement('td');
-        tdDate.textContent = formatDate(u.submittedAt);
-        tr.appendChild(tdDate);
-
-        tbody.appendChild(tr);
-    });
+    tbody.innerHTML = slice.map(u => `
+        <tr>
+            <td style="font-family:monospace; color:var(--primary)">${u.id.substring(0, 12)}...</td>
+            <td>${u.email || '--'}</td>
+            <td>${u.displayName || u.name || '--'}</td>
+            <td><span class="status-check status-${u.submitted}">${u.submitted ? 'Completed' : 'In Progress'}</span></td>
+            <td>${formatDate(u.submittedAt)}</td>
+        </tr>
+    `).join('');
 
     document.getElementById('page-indicator').innerText = `Page ${currentPage} of ${totalPages}`;
 }
@@ -607,121 +578,68 @@ window.renderDetailedTable = () => {
     if (!tbody) return;
 
     // Generate Rows
-    tbody.innerHTML = '';
-
-    allResponses.forEach(r => {
+    const rowsHTML = allResponses.map(r => {
         const user = allUsers.find(u => u.id === r.id) || {};
-        const tr = document.createElement('tr');
 
-        // Helper to add safe text cells
-        const addTextCell = (text) => {
-            const td = document.createElement('td');
-            td.textContent = text || '-';
-            tr.appendChild(td);
+        const formatMulti = (val) => {
+            if (!val) return '<span style="color:var(--text-muted)">-</span>';
+            if (Array.isArray(val)) return val.map(v => `<span class="tag">${v}</span>`).join(' ');
+            return val;
         };
 
-        // Helper for multi-value cells (safe tags)
-        const addMultiCell = (val) => {
-            const td = document.createElement('td');
-            if (!val) {
-                const span = document.createElement('span');
-                span.style.color = 'var(--text-muted)';
-                span.textContent = '-';
-                td.appendChild(span);
-            } else if (Array.isArray(val)) {
-                val.forEach(v => {
-                    const span = document.createElement('span');
-                    span.className = 'tag';
-                    span.textContent = v;
-                    td.appendChild(span);
-                    td.appendChild(document.createTextNode(' '));
-                });
-            } else {
-                td.textContent = val;
-            }
-            tr.appendChild(td);
-        };
+        return `
+            <tr>
+                <!-- DELETE ACTION COLUMN -->
+                <td>
+                    <button class="btn-icon-danger" onclick="deleteResponse('${r.id}')" title="Delete Response">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                    </button>
+                </td>
+                <td style="font-weight:600; color:var(--text-primary);">${user.displayName || user.name || '-'}</td>
+                <td>${user.email || '-'}</td>
+                <td><span class="status-check status-${user.submitted}">${user.submitted ? 'Done' : 'Pending'}</span></td>
+                <td>${formatDate(user.submittedAt)}</td>
+                <!-- Section A -->
+                <td>${r.age_group || '-'}</td>
+                <td>${r.grade || '-'}</td>
+                <td>${r.province || '-'}</td>
+                <td>${r.district || '-'}</td>
+                <td>${r.school_type || '-'}</td>
+                <!-- Section B -->
+                <td>${r.primary_device || '-'}</td>
+                <td>${r.media_hours || '-'}</td>
+                <td>${formatMulti(r.media_sources)}</td>
+                <td>${formatMulti(r.social_platforms)}</td>
+                <!-- Section C -->
+                <td>${r.heard_ethics || '-'}</td>
+                <td>${formatMulti(r.ethics_meaning)}</td>
+                <td>${r.learned_ethics || '-'}</td>
+                <td>${r.ethics_important || '-'}</td>
+                <!-- Section D -->
+                <td>${r.biggest_problem || '-'}</td>
+                <td>${r.seen_unethical || '-'}</td>
+                <td>${r.affected_by_fake || '-'}</td>
+                <td>${r.verify_news || '-'}</td>
+                <!-- Section E -->
+                <td>${r.trust_media || '-'}</td>
+                <td>${r.trust_social || '-'}</td>
+                <td>${r.media_influence || '-'}</td>
+                <td>${r.responsible_media || '-'}</td>
+                <!-- Section F -->
+                <td>${r.know_regulations || '-'}</td>
+                <td>${r.need_regulation || '-'}</td>
+                <td>${r.who_regulate || '-'}</td>
+                <!-- Section G -->
+                <td>${formatMulti(r.media_better)}</td>
+                <td>${r.youth_role || '-'}</td>
+                <td>${r.would_report || '-'}</td>
+                <td>${r.future_media || '-'}</td>
+                <td style="max-width:300px; white-space:normal;">${r.additional_thoughts || '-'}</td>
+            </tr>
+        `;
+    }).join('');
 
-        // DELETE ACTION COLUMN
-        const tdAction = document.createElement('td');
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'btn-icon-danger';
-        btnDelete.onclick = () => deleteResponse(r.id);
-        btnDelete.title = 'Delete Response';
-        btnDelete.innerHTML = '<i data-lucide="trash-2" style="width:14px;height:14px;"></i>'; // Safe: Internal SVG
-        tdAction.appendChild(btnDelete);
-        tr.appendChild(tdAction);
-
-        // Name & Email (Safe)
-        const tdName = document.createElement('td');
-        tdName.style.fontWeight = '600';
-        tdName.style.color = 'var(--text-primary)';
-        tdName.textContent = user.displayName || user.name || '-';
-        tr.appendChild(tdName);
-
-        addTextCell(user.email);
-
-        // Status
-        const tdStatus = document.createElement('td');
-        const spanStatus = document.createElement('span');
-        spanStatus.className = `status-check status-${user.submitted}`;
-        spanStatus.textContent = user.submitted ? 'Done' : 'Pending';
-        tdStatus.appendChild(spanStatus);
-        tr.appendChild(tdStatus);
-
-        addTextCell(formatDate(user.submittedAt));
-
-        // Section A
-        addTextCell(r.age_group);
-        addTextCell(r.grade);
-        addTextCell(r.province);
-        addTextCell(r.district);
-        addTextCell(r.school_type);
-
-        // Section B
-        addTextCell(r.primary_device);
-        addTextCell(r.media_hours);
-        addMultiCell(r.media_sources);
-        addMultiCell(r.social_platforms);
-
-        // Section C
-        addTextCell(r.heard_ethics);
-        addMultiCell(r.ethics_meaning);
-        addTextCell(r.learned_ethics);
-        addTextCell(r.ethics_important);
-
-        // Section D
-        addTextCell(r.biggest_problem);
-        addTextCell(r.seen_unethical);
-        addTextCell(r.affected_by_fake);
-        addTextCell(r.verify_news);
-
-        // Section E
-        addTextCell(r.trust_media);
-        addTextCell(r.trust_social);
-        addTextCell(r.media_influence);
-        addTextCell(r.responsible_media);
-
-        // Section F
-        addTextCell(r.know_regulations);
-        addTextCell(r.need_regulation);
-        addTextCell(r.who_regulate);
-
-        // Section G
-        addMultiCell(r.media_better);
-        addTextCell(r.youth_role);
-        addTextCell(r.would_report);
-        addTextCell(r.future_media);
-
-        // Additional Thoughts (with max-width)
-        const tdThoughts = document.createElement('td');
-        tdThoughts.style.maxWidth = '300px';
-        tdThoughts.style.whiteSpace = 'normal';
-        tdThoughts.textContent = r.additional_thoughts || '-';
-        tr.appendChild(tdThoughts);
-
-        tbody.appendChild(tr);
-    });
+    tbody.innerHTML = rowsHTML;
     lucide.createIcons();
 }
 

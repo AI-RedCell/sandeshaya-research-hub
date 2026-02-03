@@ -38,6 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("Auth State Changed:", firebaseUser ? `User detected: ${firebaseUser.email}` : "No user");
       setUser(firebaseUser);
 
       if (firebaseUser) {
@@ -71,31 +72,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(false);
     });
 
-    // Handle Redirect Result
+    // Handle Redirect Result - REMOVED (Switched to Popup)
+    /*
     import('firebase/auth').then(({ getRedirectResult }) => {
       getRedirectResult(auth)
         .then((result) => {
+          console.log("Redirect Result:", result);
           if (result?.user) {
             console.log("Redirect Login Successful:", result.user.email);
+          } else {
+            console.log("Redirect Result: No user returned");
           }
         })
         .catch((error) => {
           console.error("Redirect Login Error:", error);
         });
     });
+    */
 
     return () => unsubscribe();
   }, []);
 
-  // Sign in with Google (Switched to Redirect for better stability)
+  // Sign in with Google (Switched to POPUP for better reliability)
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
     try {
-      // We use Redirect instead of Popup to avoid "popup-closed-by-user" errors
-      await import('firebase/auth').then(({ signInWithRedirect }) => {
-        return signInWithRedirect(auth, provider);
-      });
-      // Logic continues in onAuthStateChanged after redirect
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      console.log("Popup Login Successful:", result.user.email);
+      // Logic continues in onAuthStateChanged
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;

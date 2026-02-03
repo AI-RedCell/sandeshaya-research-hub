@@ -23,7 +23,9 @@ const Login = () => {
 
   // Redirect if already logged in
   useEffect(() => {
+    console.log("Login Page Effect - Loading:", loading, "User:", user?.email);
     if (!loading && user) {
+      console.log("User detected in Login page. Redirecting to /survey...");
       navigate('/survey');
     }
   }, [user, loading, navigate]);

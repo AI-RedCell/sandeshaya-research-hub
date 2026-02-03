@@ -244,7 +244,7 @@
         </p>
     </div>
 
-    <script src="/dashboard/firebase-config.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -296,14 +296,16 @@
 
                 // Optional: Check admin collection
                 // Uncomment for production:
+                /*
                 const adminDoc = await db.collection('admins').doc(user.uid).get();
-                if (!adminDoc.exists) {
+                if(!adminDoc.exists) {
                     await auth.signOut();
                     showError('Access denied. You are not an authorized admin.');
                     loadingOverlay.classList.remove('active');
                     loginBtn.disabled = false;
                     return;
                 }
+                */
 
                 showSuccess('Login successful! Redirecting...');
                 setTimeout(() => {
@@ -313,14 +315,15 @@
             } catch (error) {
                 console.error('Login error:', error);
 
-                let message = `Error (${error.code}): ${error.message}`;
-
+                let message = 'An error occurred. Please try again.';
                 if (error.code === 'auth/user-not-found') {
                     message = 'No account found with this email.';
                 } else if (error.code === 'auth/wrong-password') {
                     message = 'Incorrect password.';
-                } else if (error.code === 'permission-denied') {
-                    message = 'Access Denied: Your account is not in the "admins" list in the database.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Invalid email format.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    message = 'Too many failed attempts. Please try again later.';
                 }
 
                 showError(message);

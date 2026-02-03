@@ -40,7 +40,7 @@ const Login = () => {
     } catch (error: unknown) {
       console.error("Google sign-in error:", error);
       const errorMessage = error instanceof Error ? error.message : "Google sign-in failed. Please try again.";
-      
+
       // Check if it's a popup blocked error
       if (errorMessage.includes('popup') || errorMessage.includes('blocked')) {
         setGoogleError("Popup was blocked! Please allow popups for this site in your browser settings, then try again.");

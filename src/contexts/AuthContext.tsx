@@ -7,34 +7,12 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-
-// Detect if we should use popup (desktop or localhost) vs redirect (mobile on production)
-const shouldUsePopup = (): boolean => {
-  if (typeof window === 'undefined') return true;
-  
-  // DEBUG: Add ?redirect=1 to URL to force redirect mode for testing
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('redirect') === '1') {
-    console.log("🧪 DEBUG: Forcing redirect flow via URL param");
-    return false;
-  }
-  
-  // Always use popup on localhost (redirect doesn't work reliably locally)
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1';
-  if (isLocalhost) {
-    console.log("🏠 Localhost detected - using popup flow");
-    return true;
-  }
-  
-  // On production: use popup for desktop, redirect for mobile
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  console.log(isMobile ? "📱 Mobile detected" : "🖥️ Desktop detected");
-  return !isMobile;
-};
+import { isMobileDevice } from '@/hooks/use-mobile';
 
 interface UserData {
   name: string;
@@ -60,97 +38,97 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [redirectChecked, setRedirectChecked] = useState(false);
+  const [redirectHandled, setRedirectHandled] = useState(false);
 
-  // Helper function to fetch/create user data in Firestore
-  const fetchOrCreateUserData = async (firebaseUser: User) => {
-    try {
-      const userDocRef = doc(db, 'users', firebaseUser.uid);
-      const userDoc = await getDoc(userDocRef);
+  // FIX 2: Set persistence to LOCAL (REQUIRED for mobile redirect auth)
+  useEffect(() => {
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        console.log("Persistence set to LOCAL");
+      })
+      .catch((error) => {
+        console.error("Error setting persistence:", error);
+      });
+  }, []);
 
-      if (!userDoc.exists()) {
-        const newUserData: UserData = {
-          name: firebaseUser.displayName || '',
-          email: firebaseUser.email || '',
-          emailVerified: firebaseUser.emailVerified,
-          submitted: false,
-          createdAt: serverTimestamp(),
-          submittedAt: null,
-        };
-        await setDoc(userDocRef, newUserData);
-        console.log("✓ New user document created:", firebaseUser.uid);
-        return newUserData;
-      } else {
-        const existingData = userDoc.data() as UserData;
-        console.log("✓ Existing user data loaded:", firebaseUser.uid, "submitted:", existingData.submitted);
-        return existingData;
-      }
-    } catch (error) {
-      console.error('✗ Error fetching/creating user data:', error);
-      return {
-        name: firebaseUser.displayName || '',
-        email: firebaseUser.email || '',
-        emailVerified: firebaseUser.emailVerified,
-        submitted: false,
-        createdAt: null,
-        submittedAt: null,
-      };
-    }
-  };
-
-  // Setup auth state listener and handle redirect results
+  // FIX 3: Handle redirect result ON APP LOAD
   useEffect(() => {
     let isComponentMounted = true;
-    console.log("🔄 AuthProvider mounting...");
 
-    // STEP 1: Check for redirect result FIRST (for mobile users returning from Google)
-    const checkRedirectResult = async () => {
-      try {
-        console.log("🔍 Checking for redirect result...");
-        const result = await getRedirectResult(auth);
-        
-        if (result?.user) {
-          console.log("✓ Redirect Login Successful:", result.user.email);
-          const credential = GoogleAuthProvider.credentialFromResult(result);
-          if (credential) {
-            console.log("✓ Google Access Token obtained from redirect");
-          }
-          // User data will be handled by onAuthStateChanged
-        } else {
-          console.log("ℹ️ No redirect result (normal page load or popup login)");
-        }
-      } catch (error: any) {
-        if (error?.code) {
-          console.error("✗ Redirect result error:", error.code, error.message);
-        }
-      } finally {
+    // This MUST run when app starts to handle redirect auth result
+    getRedirectResult(auth)
+      .then(async (result) => {
         if (isComponentMounted) {
-          setRedirectChecked(true);
+          if (result?.user) {
+            console.log("Redirect login success:", result.user.email);
+            // User will be set by onAuthStateChanged
+          }
+          setRedirectHandled(true);
         }
-      }
+      })
+      .catch((error) => {
+        if (isComponentMounted) {
+          console.error("Redirect result error:", error.code, error.message);
+          setRedirectHandled(true);
+        }
+      });
+
+    return () => {
+      isComponentMounted = false;
     };
+  }, []);
 
-    // Start checking redirect result
-    checkRedirectResult();
+  // Listen for auth state changes
+  useEffect(() => {
+    let isComponentMounted = true;
 
-    // STEP 2: Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isComponentMounted) return;
       
-      console.log("🔄 Auth state changed:", firebaseUser?.email || "No user");
-      
+      console.log("Auth state changed:", firebaseUser?.email || "No user");
+      setUser(firebaseUser);
+
       if (firebaseUser) {
-        setUser(firebaseUser);
-        const data = await fetchOrCreateUserData(firebaseUser);
-        if (isComponentMounted) {
-          setUserData(data);
-          setLoading(false);
+        try {
+          // Check if user document exists in Firestore
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (!userDoc.exists()) {
+            // Create new user document for first-time users
+            const newUserData: UserData = {
+              name: firebaseUser.displayName || '',
+              email: firebaseUser.email || '',
+              emailVerified: firebaseUser.emailVerified,
+              submitted: false,
+              createdAt: serverTimestamp(),
+              submittedAt: null,
+            };
+            await setDoc(userDocRef, newUserData);
+            setUserData(newUserData);
+            console.log("New user document created:", firebaseUser.uid);
+          } else {
+            const existingData = userDoc.data() as UserData;
+            setUserData(existingData);
+            console.log("Existing user data loaded:", firebaseUser.uid, "submitted:", existingData.submitted);
+          }
+        } catch (error) {
+          console.error('Error fetching/creating user data:', error);
+          // Still allow user to proceed even if Firestore fails
+          setUserData({
+            name: firebaseUser.displayName || '',
+            email: firebaseUser.email || '',
+            emailVerified: firebaseUser.emailVerified,
+            submitted: false,
+            createdAt: null,
+            submittedAt: null,
+          });
         }
       } else {
-        setUser(null);
         setUserData(null);
-        setLoading(false);
       }
+
+      setLoading(false);
     });
 
     return () => {
@@ -159,36 +137,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  // Sign in with Google
-  // Popup: localhost + desktop | Redirect: mobile on production
+  // Combined loading: wait for BOTH auth state AND redirect result
+  const isFullyLoaded = !loading && redirectHandled;
+
+  // FIX 1: Sign in with Google - REDIRECT on mobile, POPUP on desktop
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
     
-    const usePopup = shouldUsePopup();
+    // Check if mobile device
+    const isMobile = isMobileDevice();
     
     try {
-      if (usePopup) {
-        console.log("🖥️ Using popup flow");
+      if (isMobile) {
+        // MOBILE: Use redirect (NEVER use popup on mobile)
+        console.log("Mobile detected - using redirect flow");
+        await signInWithRedirect(auth, provider);
+        // After redirect, getRedirectResult will handle the result
+        return;
+      } else {
+        // DESKTOP: Use popup (better UX)
+        console.log("Desktop detected - using popup flow");
         const result = await signInWithPopup(auth, provider);
         
         const credential = GoogleAuthProvider.credentialFromResult(result);
-        console.log("✓ Google Sign-In Successful:", result.user.email);
+        const signedInUser = result.user;
+        
+        console.log("Google Sign-In Successful:", signedInUser.email);
         if (credential?.accessToken) {
-          console.log("✓ Access token obtained");
+          console.log("Access token obtained");
         }
-      } else {
-        console.log("📱 Using redirect flow (mobile on production)");
-        await signInWithRedirect(auth, provider);
-        // User will be redirected to Google, then back to the app
       }
     } catch (error: unknown) {
       const firebaseError = error as { code?: string; message?: string };
       const errorCode = firebaseError.code || 'unknown';
       const errorMessage = firebaseError.message || 'Google sign-in failed';
       
-      console.error("✗ Google Sign-In Error [" + errorCode + "]:", errorMessage);
+      console.error("Google Sign-In Error [" + errorCode + "]:", errorMessage);
       
       if (errorCode === 'auth/popup-closed-by-user') {
         throw new Error('You closed the sign-in popup. Please try again.');
@@ -212,17 +198,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await firebaseSignOut(auth);
       setUser(null);
       setUserData(null);
-      console.log("✓ User signed out successfully");
+      console.log("User signed out successfully");
     } catch (error) {
-      console.error("✗ Error signing out:", error);
+      console.error("Error signing out:", error);
       throw error;
     }
   };
 
+  // Debug log
+  console.log("AuthContext:", { loading, redirectHandled, isFullyLoaded, hasUser: !!user });
+
   const value: AuthContextType = {
     user,
     userData,
-    loading,
+    loading: !isFullyLoaded, // Loading until BOTH checks complete
     signInWithGoogle,
     signOut,
     hasSubmitted: userData?.submitted ?? false,

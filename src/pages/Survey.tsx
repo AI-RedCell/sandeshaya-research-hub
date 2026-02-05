@@ -15,10 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, ArrowRight, Loader2, Check } from "lucide-react";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, collection, addDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import ACBU logo safely
 let acbuLogoSrc: string | null = null;
@@ -221,9 +221,9 @@ const getEnglishValue = (optionKey: string): string => {
 
 const Survey = () => {
   const { language, setLanguage, t } = useLanguage();
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, userData, signOut } = useAuth();
 
   const [currentSection, setCurrentSection] = useState(0);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
@@ -363,18 +363,82 @@ const Survey = () => {
         description: "Please log in to submit your response.",
         variant: "destructive",
       });
+      navigate('/login');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      // Network check
+      if (!navigator.onLine) {
+        toast({
+          title: "Offline!",
+          description: "You appear to be offline. Please connect to the internet and try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Refactor Data Schema: Prefix keys with Q{number}_
+      const finalResponses: Record<string, any> = {};
+
+      // 1. Flatten all questions to get their global index easily
+      const allQuestions = surveyStructure.flatMap(s => s.questions);
+
+      allQuestions.forEach((q, index) => {
+        const globalQNum = index + 1;
+        const newKey = `Q${globalQNum}_${q.id}`;
+
+        // Get the response value (or undefined)
+        let value = responses[q.id];
+
+        // Add to payload (if undefined, Firestore will just ignore it unless we set a default? 
+        // User asked for ALL data, so let's check validation again or just save what we have)
+        if (value !== undefined) {
+          finalResponses[newKey] = value;
+        }
+
+        // Handle Comment if allowed
+        if (q.allowComment) {
+          const commentKey = `${q.id}_comment`;
+          const commentValue = responses[commentKey];
+          const newCommentKey = `Q${globalQNum}_${q.id}_comment`;
+
+          // Ensure comment is always saved (requested fix from step 124)
+          finalResponses[newCommentKey] = commentValue !== undefined ? commentValue : "";
+        }
+      });
+
       // Save response to Firestore (NO PII - just answers)
-      await setDoc(doc(db, 'responses', user.uid), {
+      // Use setDoc to overwrite if exists (one response per user)
+      const docRef = doc(db, 'responses', user.uid);
+
+      console.log('📝 Submitting to path:', docRef.path);
+      console.log('📦 Submission payload:', JSON.stringify(finalResponses, null, 2));
+      console.log('🆔 User UID:', user.uid);
+
+      await setDoc(docRef, {
         userId: user.uid,
-        ...responses,
+        ...finalResponses,
         submittedAt: serverTimestamp(),
       });
+
+      console.log('✅ setDoc() resolved!');
+
+      // VERIFICATION: Read back the document to confirm it was written
+      const verifyDoc = await getDoc(docRef);
+      if (verifyDoc.exists()) {
+        console.log('✅ Write Verified! Document exists:', verifyDoc.id);
+        console.log('📄 Verified data sample:', {
+          userId: verifyDoc.data().userId,
+          Q1_grade: verifyDoc.data().Q1_grade,
+        });
+      } else {
+        console.error('❌ Write Verification FAILED! Document does not exist after setDoc.');
+        throw new Error('Write verification failed - document not found after save.');
+      }
 
       // Mark user as submitted
       await updateDoc(doc(db, 'users', user.uid), {
@@ -388,9 +452,18 @@ const Survey = () => {
       });
 
       navigate('/submitted');
-    } catch (error: unknown) {
-      console.error("Error submitting survey:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit survey. Please try again.";
+    } catch (error: any) {
+      console.error("❌ Error submitting survey:", error);
+      console.error("error code:", error.code);
+      console.error("error msg:", error.message);
+
+      let errorMessage = "Failed to submit survey. Please try again.";
+      if (error.code === 'permission-denied') {
+        errorMessage = "Permission denied. Your account may not have access.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Submission Error",
         description: errorMessage,
@@ -663,7 +736,6 @@ const Survey = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="py-4 border-t border-gray-200 bg-white">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <p className="text-xs text-gray-500">

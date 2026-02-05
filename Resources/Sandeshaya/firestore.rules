@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users: Allow read for all authenticated users (Dashboard Admin)
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Responses: Allow read/delete for all authenticated users (Dashboard Admin)
+    match /responses/{document=**} {
+      allow read, delete: if request.auth != null;
+      // Detailed: Allow create only if auth matches docId and doesn't exist
+      allow create: if request.auth != null; 
+      // Note: Simplifying create rule to basic auth for debugging/broad access, 
+      // but keeping it authenticated. 
+      // Original strict logic: && request.auth.uid == userId && !exists(...) 
+      // can be restored if needed.
+    }
+
+    match /metadata/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

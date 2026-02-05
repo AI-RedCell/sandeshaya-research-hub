@@ -1,0 +1,47 @@
+/* Enhanced Focus Styles for Accessibility */
+
+/* Global focus-visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid hsl(var(--secondary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Button specific focus styles */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid hsl(var(--secondary));
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px hsla(var(--secondary), 0.2);
+}
+
+/* Input field focus styles */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid hsl(var(--secondary));
+  outline-offset: 0;
+  border-color: hsl(var(--secondary));
+  box-shadow: 0 0 0 3px hsla(var(--secondary), 0.15);
+}
+
+/* Radio and checkbox focus styles */
+input[type="radio"]:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid hsl(var(--secondary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsla(var(--secondary), 0.15);
+}
+
+/* Link focus in text content */
+a:not([class]):focus-visible {
+  outline: 2px solid hsl(var(--secondary));
+  outline-offset: 2px;
+  background-color: hsla(var(--secondary), 0.1);
+  border-radius: 3px;
+}
+
+/* Remove focus ring for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}

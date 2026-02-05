@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandeshaya Research Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js 4.4.0 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- SheetJS for XLSX Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<style>
+    body {
+        display: none;
+    }
+</style> <!-- Prevent Flash -->
+<script>
+    // Immediate Auth Check to prevent dashboard flashing
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkAuth = setInterval(() => {
+            if (window.firebase && firebase.auth) {
+                clearInterval(checkAuth);
+                firebase.auth().onAuthStateChanged(user => {
+                    if (!user) {
+                        window.location.replace('login.html');
+                    } else {
+                        document.body.style.display = 'block';
+                    }
+                });
+            }
+        }, 50); // Check every 50ms for SDK load
+    });
+</script>
+
+<body class="sidebar-collapsed">
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="/" class="brand" style="text-decoration:none;">
+                <div class="brand-icon" style="background:none; box-shadow:none;">
+                    <img src="logo.png" alt="Logo" style="width:100%; height:100%; object-fit:contain;">
+                </div>
+                <div class="brand-text">Sandeshaya<br><span style="color:var(--secondary)">Research</span></div>
+            </a>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" onclick="switchView('dashboard')">
+                    <i data-lucide="layout-dashboard"></i>
+                    Overview
+                </a>
+                <a href="#" class="nav-item" onclick="switchView('datagrid')">
+                    <i data-lucide="table-2"></i>
+                    Data Grid (All Responses)
+                </a>
+                <a href="#" class="nav-item"
+                    onclick="switchView('dashboard'); setTimeout(()=>document.getElementById('funnelChart')?.scrollIntoView({behavior:'smooth'}),100);">
+                    <i data-lucide="filter"></i>
+                    Survey Funnel
+                </a>
+                <a href="#" class="nav-item"
+                    onclick="switchView('dashboard'); setTimeout(()=>document.getElementById('demographics')?.scrollIntoView({behavior:'smooth'}),100);">
+                    <i data-lucide="users"></i>
+                    Demographics
+                </a>
+                <a href="#" class="nav-item"
+                    onclick="switchView('dashboard'); setTimeout(()=>document.getElementById('ethics')?.scrollIntoView({behavior:'smooth'}),100);">
+                    <i data-lucide="scale"></i>
+                    Ethics Insights
+                </a>
+            </nav>
+
+            <div class="nav-menu nav-menu-bottom">
+                <a href="#" id="logout-btn" class="nav-item" style="color:var(--danger)">
+                    <i data-lucide="log-out"></i>
+                    Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="main-content">
+
+            <!-- VIEW: DASHBOARD (Active by Default) -->
+            <div id="view-dashboard" class="main-view active">
+                <header class="top-header">
+                    <div class="page-title" style="display:flex; align-items:center; gap:15px;">
+                        <button class="btn-glass" id="sidebar-toggle" style="padding:8px;">
+                            <i data-lucide="menu" style="width:20px;height:20px;"></i>
+                        </button>
+                        <div>
+                            <h1>Research Dashboard</h1>
+                            <p>National Student Media Ethics Survey Analytics</p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-glass" onclick="openExportModal()">
+                            <i data-lucide="download" style="width:18px;height:18px;"></i>
+                            Export Data
+                        </button>
+                        <button class="btn-primary" onclick="loadAnalytics()">
+                            <i data-lucide="rotate-cw" style="width:18px;height:18px;"></i>
+                            Refresh Data
+                        </button>
+                    </div>
+                </header>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <!-- Total Participants -->
+                    <div class="card">
+                        <div class="kpi-h">
+                            <div class="kpi-icon" style="color:var(--primary)">
+                                <i data-lucide="users" style="width:24px;height:24px;"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-val" id="total-users">0</div>
+                        <div class="kpi-lbl">Total Participants</div>
+                    </div>
+
+                    <!-- Completion Rate -->
+                    <div class="card">
+                        <div class="kpi-h">
+                            <div class="kpi-icon" style="color:var(--success)">
+                                <i data-lucide="check-circle" style="width:24px;height:24px;"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-val" id="completion-rate">0%</div>
+                        <div class="kpi-lbl">Completion Rate</div>
+                    </div>
+
+                    <!-- Schools Represented -->
+                    <div class="card">
+                        <div class="kpi-h">
+                            <div class="kpi-icon" style="color:var(--secondary)">
+                                <i data-lucide="book-open" style="width:24px;height:24px;"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-val" id="provinces-count">0</div>
+                        <div class="kpi-lbl">Provinces Represented</div>
+                    </div>
+
+                    <!-- Drop-off Rate -->
+                    <div class="card">
+                        <div class="kpi-h">
+                            <div class="kpi-icon" style="color:var(--danger)">
+                                <i data-lucide="x-circle" style="width:24px;height:24px;"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-val" id="drop-off-rate">0%</div>
+                        <div class="kpi-lbl">Incomplete Surveys</div>
+                    </div>
+                </div>
+
+                <!-- Demographics Section -->
+                <div class="section-title" id="demographics">
+                    <h2>Demographics Overview</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- District Distribution -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Geographic</span>
+                                <h3>District Distribution</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="provinceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- School Type -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Education</span>
+                                <h3>School Type Distribution</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="schoolTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+
+
+                    <!-- Grade Distribution -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Education Level</span>
+                                <h3>Grade Distribution</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="gradeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Consumption Section -->
+                <div class="section-title">
+                    <h2>Media Consumption Habits</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Primary Device -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Device Usage</span>
+                                <h3>Primary Device for Media</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="deviceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Media Hours -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Time Spent</span>
+                                <h3>Daily Media Consumption</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="hoursChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Ethics Awareness Section -->
+                <div class="section-title" id="ethics">
+                    <h2>Ethics Awareness & Perception</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Heard of Ethics -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Awareness</span>
+                                <h3>Heard About Media Ethics?</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="heardEthicsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Ethics Importance -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Perception</span>
+                                <h3>Importance of Media Ethics</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="ethicsImportanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Biggest Problem -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Ethical Issues</span>
+                                <h3>Biggest Problem in Sri Lankan Media</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="biggestProblemChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Seen Unethical -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Experience</span>
+                                <h3>Exposure to Unethical Content</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="seenUnethicalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Section -->
+                <div class="section-title">
+                    <h2>Trust & Influence</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Trust Media -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Trust Level</span>
+                                <h3>Trust in Sri Lankan Media</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trustMediaChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Media Influence -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Impact</span>
+                                <h3>Media Influence on Opinions</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="mediaInfluenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regulation Section -->
+                <div class="section-title">
+                    <h2>Regulation & Governance</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Need Regulation -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Policy View</span>
+                                <h3>Need for Stronger Regulations?</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="needRegulationChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Who Should Regulate -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Governance</span>
+                                <h3>Who Should Regulate Media?</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="whoRegulateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Survey Funnel -->
+                <div class="section-title">
+                    <h2>Survey Flow Analysis</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Funnel Chart -->
+                    <div class="chart-card" style="grid-column: span 2;">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>User Journey</span>
+                                <h3>Section Completion Funnel</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height:350px;">
+                            <canvas id="funnelChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Vision Section -->
+                <div class="section-title">
+                    <h2>Future Vision & Recommendations</h2>
+                </div>
+
+                <div class="charts-row">
+                    <!-- Youth Role -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Youth Voice</span>
+                                <h3>Should Youth Have a Say?</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="youthRoleChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Would Report -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-h-left">
+                                <span>Action Intent</span>
+                                <h3>Would Report Unethical Content?</h3>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="wouldReportChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="section-title">
+                    <h2>Participant Registry</h2>
+                </div>
+                <div class="data-table-container">
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <i data-lucide="search" style="width:18px;height:18px;"></i>
+                            <input type="text" id="search-input" placeholder="Search by email...">
+                        </div>
+                        <select id="status-filter">
+                            <option value="all">All Statuses</option>
+                            <option value="true">Completed</option>
+                            <option value="false">In Progress</option>
+                        </select>
+                    </div>
+                    <table class="unified-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Submitted At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                    <div class="table-controls"
+                        style="border-top:1px solid var(--border-subtle); justify-content:center; gap:10px;">
+                        <button class="btn-glass" onclick="changePage(currentPage-1)">Previous</button>
+                        <span id="page-indicator" style="align-self:center; color:var(--text-secondary)">Page 1</span>
+                        <button class="btn-glass" onclick="changePage(currentPage+1)">Next</button>
+                    </div>
+                </div>
+
+                <div style="height:50px"></div>
+            </div> <!-- End Dashboard View -->
+
+            <!-- VIEW: DATA GRID (Detailed) -->
+            <div id="view-datagrid" class="main-view" style="display:none; padding: 20px;">
+                <header class="top-header" style="margin-bottom:20px;">
+                    <div class="page-title" style="display:flex; align-items:center; gap:15px;">
+                        <button class="btn-glass sidebar-toggle" style="padding:8px;">
+                            <i data-lucide="menu" style="width:20px;height:20px;"></i>
+                        </button>
+                        <div>
+                            <h1>Detailed Response Data</h1>
+                            <p>Complete dataset with all 30 questions across 7 sections</p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-glass" onclick="openExportModal()">
+                            <i data-lucide="download" style="width:18px;height:18px;"></i>
+                            Export Data
+                        </button>
+                        <button class="btn-primary" onclick="loadAnalytics()">
+                            <i data-lucide="rotate-cw" style="width:18px;height:18px;"></i>
+                            Refresh Grid
+                        </button>
+                    </div>
+                </header>
+
+                <div class="card" style="overflow:hidden;">
+                    <div class="table-container-wide" style="overflow-x:auto; max-height:80vh;">
+                        <table class="unified-table detailed-table">
+                            <thead>
+                                <tr>
+                                    <th>Actions</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Submitted</th>
+                                    <!-- Section A: Demographics -->
+                                    <th>Age Group</th>
+                                    <th>Grade</th>
+                                    <th>Province</th>
+                                    <th>District</th>
+                                    <th>School Type</th>
+                                    <!-- Section B: Media Consumption -->
+                                    <th>Primary Device</th>
+                                    <th>Media Hours</th>
+                                    <th>Media Sources</th>
+                                    <th>Social Platforms</th>
+                                    <!-- Section C: Ethics Awareness -->
+                                    <th>Heard Ethics</th>
+                                    <th>Ethics Meaning</th>
+                                    <th>Learned Ethics</th>
+                                    <th>Ethics Important</th>
+                                    <!-- Section D: Ethical Issues -->
+                                    <th>Biggest Problem</th>
+                                    <th>Seen Unethical</th>
+                                    <th>Affected by Fake</th>
+                                    <th>Verify News</th>
+                                    <!-- Section E: Trust -->
+                                    <th>Trust Media</th>
+                                    <th>Trust Social</th>
+                                    <th>Media Influence</th>
+                                    <th>Responsible Media</th>
+                                    <!-- Section F: Regulation -->
+                                    <th>Know Regulations</th>
+                                    <th>Need Regulation</th>
+                                    <th>Who Regulate</th>
+                                    <!-- Section G: Future -->
+                                    <th>Media Better</th>
+                                    <th>Youth Role</th>
+                                    <th>Would Report</th>
+                                    <th>Future Media</th>
+                                    <th>Additional Thoughts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailed-tbody">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Detailed Charts Grid -->
+                <div class="section-title" style="margin-top: 40px;">
+                    <h2>Response Distribution by Question</h2>
+                </div>
+                <div id="detailed-charts-grid" class="charts-row">
+                    <!-- Charts injected by renderDetailedCharts() -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Configuration -->
+    <script src="firebase-config.js"></script>
+    <script>
+
+        document.getElementById('logout-btn').addEventListener('click', () => firebase.auth().signOut());
+
+        // Sidebar Toggle
+        const sidebar = document.querySelector('.sidebar');
+        document.querySelectorAll('.sidebar-toggle, #sidebar-toggle').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (window.innerWidth <= 768) {
+                    document.body.classList.toggle('sidebar-open');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                }
+            });
+        });
+
+        // Close sidebar when clicking overlay on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 &&
+                document.body.classList.contains('sidebar-open') &&
+                !sidebar.contains(e.target)) {
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+
+        // View Switching
+        window.switchView = (viewName) => {
+            document.querySelectorAll('.main-view').forEach(el => el.style.display = 'none');
+            document.getElementById(`view-${viewName}`).style.display = 'block';
+
+            // Update Nav Active State
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (viewName === 'dashboard') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if (viewName === 'datagrid') document.querySelectorAll('.nav-item')[1].classList.add('active');
+
+            if (viewName === 'datagrid') {
+                renderDetailedTable();
+                renderDetailedCharts();
+            }
+        }
+    </script>
+    <!-- Core Analytics Engine -->
+    <script src="app.js"></script>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Survey Data</h2>
+                <button class="modal-close" onclick="closeExportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Format</label>
+                    <select id="export-format">
+                        <option value="xlsx">Excel (.xlsx) - Recommended</option>
+                        <option value="csv">CSV (.csv)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Scope</label>
+                    <select id="export-scope">
+                        <option value="all">All Responses</option>
+                        <option value="completed">Completed Only</option>
+                        <option value="incomplete">Incomplete Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="export-spss-mode">
+                        SPSS Mode (Split multi-select into binary columns)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="export-codebook" checked>
+                        Include Codebook Sheet (Question Legend)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-glass" onclick="closeExportModal()">Cancel</button>
+                <button class="btn-primary" onclick="runExport()">
+                    <i data-lucide="download" style="width:18px;height:18px;"></i>
+                    Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog Modal -->
+    <div id="delete-confirm-modal" class="modal-overlay" style="display:none; z-index: 10001;">
+        <div class="modal-content" style="max-width: 400px; border-top: 4px solid var(--danger);">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h2 style="color: var(--danger);">Confirm Deletion</h2>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; text-align: center;">
+                <div
+                    style="background: rgba(239, 68, 68, 0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; color: var(--danger);">
+                    <i data-lucide="alert-triangle" style="width: 32px; height: 32px;"></i>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 1rem;">Are you sure you want
+                    to delete this response?</p>
+                <div
+                    style="background: #F8FAFC; padding: 10px; border-radius: 8px; border: 1px solid var(--border-subtle); text-align: left; font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px;">
+                    <ul style="padding-left: 20px; margin: 0;">
+                        <li>Permanently removes survey data</li>
+                        <li>Resets user status to "In Progress"</li>
+                        <li>Updates all dashboard charts</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="background: #F8FAFC; border-top: 1px solid var(--border-subtle); padding: 1rem 1.5rem; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-glass" id="btn-cancel-delete">Cancel</button>
+                <button class="btn-primary" id="btn-confirm-delete"
+                    style="background: var(--danger); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                    Yes, Delete It
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Notifications (Toasts) -->
+    <div id="toast-container"
+        style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10002; display: flex; flex-direction: column; gap: 10px; pointer-events: none;">
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>

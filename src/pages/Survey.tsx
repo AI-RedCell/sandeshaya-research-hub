@@ -369,10 +369,34 @@ const Survey = () => {
     setIsSubmitting(true);
 
     try {
-      // Save response to Firestore (NO PII - just answers)
+      // Build final responses with Q# prefix schema
+      const finalResponses: Record<string, unknown> = {};
+
+      // Flatten all questions to get global index
+      const allQuestions = surveyStructure.flatMap(s => s.questions);
+
+      allQuestions.forEach((q, index) => {
+        const qNum = index + 1;
+        const newKey = `Q${qNum}_${q.id}`;
+
+        // Get the response value
+        const value = responses[q.id];
+        if (value !== undefined) {
+          finalResponses[newKey] = value;
+        }
+
+        // Handle comment fields - always save (even if empty)
+        if (q.allowComment) {
+          const commentKey = `Q${qNum}_${q.id}_comment`;
+          const commentValue = responses[`${q.id}_comment`];
+          finalResponses[commentKey] = commentValue !== undefined ? commentValue : "";
+        }
+      });
+
+      // Save response to Firestore with Q# prefix schema
       await setDoc(doc(db, 'responses', user.uid), {
         userId: user.uid,
-        ...responses,
+        ...finalResponses,
         submittedAt: serverTimestamp(),
       });
 

@@ -142,3 +142,8 @@ Thumbs.db
 .env.*.local
 
 .agent
+
+# Migration helper files (temporary tools)
+public/migrate-response.html
+scripts/migrate-old-response.js
+public/survey-entry/

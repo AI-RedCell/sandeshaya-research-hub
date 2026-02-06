@@ -5,14 +5,12 @@ import {
   signOut as firebaseSignOut,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
   getRedirectResult,
   setPersistence,
   browserLocalPersistence,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { isMobileDevice } from '@/hooks/use-mobile';
 
 interface UserData {
   name: string;
@@ -60,8 +58,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .then(async (result) => {
         if (isComponentMounted) {
           if (result?.user) {
-            console.log("Redirect login success:", result.user.email);
-            // User will be set by onAuthStateChanged
+            console.log("✅ Redirect login success:", result.user.email);
+            // Store flag in sessionStorage to indicate user just logged in via redirect
+            sessionStorage.setItem('oauth_redirect_complete', 'true');
           }
           setRedirectHandled(true);
         }
@@ -84,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isComponentMounted) return;
-      
+
       console.log("Auth state changed:", firebaseUser?.email || "No user");
       setUser(firebaseUser);
 
@@ -140,42 +139,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Combined loading: wait for BOTH auth state AND redirect result
   const isFullyLoaded = !loading && redirectHandled;
 
-  // FIX 1: Sign in with Google - REDIRECT on mobile, POPUP on desktop
+  // FIX: Use signInWithPopup for ALL devices (redirect fails due to 3rd party cookie blocking)
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
-    
-    // Check if mobile device
-    const isMobile = isMobileDevice();
-    
+
     try {
-      if (isMobile) {
-        // MOBILE: Use redirect (NEVER use popup on mobile)
-        console.log("Mobile detected - using redirect flow");
-        await signInWithRedirect(auth, provider);
-        // After redirect, getRedirectResult will handle the result
-        return;
-      } else {
-        // DESKTOP: Use popup (better UX)
-        console.log("Desktop detected - using popup flow");
-        const result = await signInWithPopup(auth, provider);
-        
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const signedInUser = result.user;
-        
-        console.log("Google Sign-In Successful:", signedInUser.email);
-        if (credential?.accessToken) {
-          console.log("Access token obtained");
-        }
+      console.log("🔐 Starting Google Sign-In with popup...");
+      const result = await signInWithPopup(auth, provider);
+
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const signedInUser = result.user;
+
+      console.log("✅ Google Sign-In Successful:", signedInUser.email);
+      if (credential?.accessToken) {
+        console.log("🔑 Access token obtained");
       }
     } catch (error: unknown) {
       const firebaseError = error as { code?: string; message?: string };
       const errorCode = firebaseError.code || 'unknown';
       const errorMessage = firebaseError.message || 'Google sign-in failed';
-      
-      console.error("Google Sign-In Error [" + errorCode + "]:", errorMessage);
-      
+
+      console.error("❌ Google Sign-In Error [" + errorCode + "]:", errorMessage);
+
       if (errorCode === 'auth/popup-closed-by-user') {
         throw new Error('You closed the sign-in popup. Please try again.');
       } else if (errorCode === 'auth/cancelled-popup-request') {
@@ -187,7 +174,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else if (errorCode === 'auth/network-request-failed') {
         throw new Error('Network error. Please check your internet connection.');
       }
-      
+
       throw new Error(errorMessage);
     }
   };

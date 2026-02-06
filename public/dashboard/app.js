@@ -103,6 +103,57 @@ function getSmartColor(label, index) {
 }
 
 // ============================================
+// FIELD MAPPING (Backward Compatible)
+// ============================================
+
+// Map old field names to new Q# prefix fields
+const FIELD_MAP = {
+    'grade': 'Q1_grade',
+    'district': 'Q2_district',
+    'school_type': 'Q3_school_type',
+    'primary_device': 'Q4_primary_device',
+    'internet_access': 'Q5_internet_access',
+    'media_hours': 'Q6_media_hours',
+    'own_device': 'Q7_own_device',
+    'heard_ethics': 'Q8_heard_ethics',
+    'ethics_meaning': 'Q9_ethics_meaning',
+    'ethics_level': 'Q10_ethics_level',
+    'misleading_content': 'Q11_misleading_content',
+    'unfair_content': 'Q12_unfair_content',
+    'problematic_platform': 'Q13_problematic_platform',
+    'ignored_ethics': 'Q14_ignored_ethics',
+    'trust_level': 'Q15_trust_level',
+    'unethical_trust': 'Q16_unethical_trust',
+    'unethical_impact_youth': 'Q17_unethical_impact_youth',
+    'question_authenticity': 'Q18_question_authenticity',
+    'know_laws': 'Q19_know_laws',
+    'laws_adequate': 'Q20_laws_adequate',
+    'best_solution': 'Q21_best_solution',
+    'responsibility_who': 'Q22_responsibility_who',
+    'new_laws_suggestions': 'Q23_new_laws_suggestions',
+    'tv_ethics': 'Q24_tv_ethics',
+    'radio_ethics': 'Q25_radio_ethics',
+    'newspaper_ethics': 'Q26_newspaper_ethics',
+    'social_web_ethics': 'Q27_social_web_ethics',
+    'student_voice': 'Q28_student_voice',
+    'school_curriculum': 'Q29_school_curriculum',
+    'biggest_ethical_problem': 'Q30_biggest_ethical_problem',
+    'current_state': 'Q31_current_state',
+    'desired_change': 'Q32_desired_change',
+    'other_thoughts': 'Q33_other_thoughts'
+};
+
+// Helper: Get field value (supports both old and new schema)
+function getField(response, fieldName) {
+    // Try new Q# key first
+    const newKey = FIELD_MAP[fieldName] || fieldName;
+    if (response[newKey] !== undefined) return response[newKey];
+    // Fall back to old key for backward compatibility
+    if (response[fieldName] !== undefined) return response[fieldName];
+    return undefined;
+}
+
+// ============================================
 // DATA LOADING & PROCESSING
 // ============================================
 
@@ -196,7 +247,8 @@ function renderDemographics() {
     // Grade Distribution
     const gradeData = {};
     allResponses.forEach(r => {
-        if (r.grade) gradeData[r.grade] = (gradeData[r.grade] || 0) + 1;
+        const val = getField(r, 'grade');
+        if (val) gradeData[val] = (gradeData[val] || 0) + 1;
     });
     createChart('gradeChart', 'bar', gradeData, MAROON_GRADIENT);
 }
@@ -209,14 +261,16 @@ function renderMediaConsumption() {
     // Primary Device
     const deviceData = {};
     allResponses.forEach(r => {
-        if (r.primary_device) deviceData[r.primary_device] = (deviceData[r.primary_device] || 0) + 1;
+        const val = getField(r, 'primary_device');
+        if (val) deviceData[val] = (deviceData[val] || 0) + 1;
     });
     createChart('deviceChart', 'doughnut', deviceData, ANALYTICS_PALETTE);
 
     // Media Hours
     const hoursData = {};
     allResponses.forEach(r => {
-        if (r.media_hours) hoursData[r.media_hours] = (hoursData[r.media_hours] || 0) + 1;
+        const val = getField(r, 'media_hours');
+        if (val) hoursData[val] = (hoursData[val] || 0) + 1;
     });
     createChart('hoursChart', 'bar', hoursData, MAROON_GRADIENT);
 
@@ -253,7 +307,8 @@ function renderEthicsAwareness() {
     // Heard of Ethics
     const heardData = {};
     allResponses.forEach(r => {
-        if (r.heard_ethics) heardData[r.heard_ethics] = (heardData[r.heard_ethics] || 0) + 1;
+        const val = getField(r, 'heard_ethics');
+        if (val) heardData[val] = (heardData[val] || 0) + 1;
     });
     createChart('heardEthicsChart', 'pie', heardData, [THEME.colors.success, THEME.colors.danger, THEME.colors.warning]);
 
@@ -284,17 +339,19 @@ function renderEthicsAwareness() {
 // ============================================
 
 function renderTrustSection() {
-    // Trust Media
+    // Trust Level (Q15)
     const trustData = {};
     allResponses.forEach(r => {
-        if (r.trust_media) trustData[r.trust_media] = (trustData[r.trust_media] || 0) + 1;
+        const val = getField(r, 'trust_level');
+        if (val) trustData[val] = (trustData[val] || 0) + 1;
     });
     createChart('trustMediaChart', 'bar', trustData, MAROON_GRADIENT);
 
-    // Media Influence
+    // Unethical Trust (Q16)
     const influenceData = {};
     allResponses.forEach(r => {
-        if (r.media_influence) influenceData[r.media_influence] = (influenceData[r.media_influence] || 0) + 1;
+        const val = getField(r, 'unethical_trust');
+        if (val) influenceData[val] = (influenceData[val] || 0) + 1;
     });
     createChart('mediaInfluenceChart', 'doughnut', influenceData, ANALYTICS_PALETTE);
 }
@@ -304,17 +361,19 @@ function renderTrustSection() {
 // ============================================
 
 function renderRegulationSection() {
-    // Need Regulation
+    // Know Laws (Q19)
     const needData = {};
     allResponses.forEach(r => {
-        if (r.need_regulation) needData[r.need_regulation] = (needData[r.need_regulation] || 0) + 1;
+        const val = getField(r, 'know_laws');
+        if (val) needData[val] = (needData[val] || 0) + 1;
     });
     createChart('needRegulationChart', 'doughnut', needData, [THEME.colors.success, THEME.colors.info, THEME.colors.warning, THEME.colors.danger]);
 
-    // Who Should Regulate
+    // Who is Responsible (Q22)
     const whoData = {};
     allResponses.forEach(r => {
-        if (r.who_regulate) whoData[r.who_regulate] = (whoData[r.who_regulate] || 0) + 1;
+        const val = getField(r, 'responsibility_who');
+        if (val) whoData[val] = (whoData[val] || 0) + 1;
     });
     createChart('whoRegulateChart', 'pie', whoData, ANALYTICS_PALETTE);
 }
@@ -324,17 +383,19 @@ function renderRegulationSection() {
 // ============================================
 
 function renderFutureVision() {
-    // Youth Role
+    // Student Voice (Q28)
     const youthData = {};
     allResponses.forEach(r => {
-        if (r.youth_role) youthData[r.youth_role] = (youthData[r.youth_role] || 0) + 1;
+        const val = getField(r, 'student_voice');
+        if (val) youthData[val] = (youthData[val] || 0) + 1;
     });
     createChart('youthRoleChart', 'doughnut', youthData, [THEME.colors.success, THEME.colors.info, THEME.colors.danger, THEME.colors.text]);
 
-    // Would Report
+    // Current State (Q31)
     const reportData = {};
     allResponses.forEach(r => {
-        if (r.would_report) reportData[r.would_report] = (reportData[r.would_report] || 0) + 1;
+        const val = getField(r, 'current_state');
+        if (val) reportData[val] = (reportData[val] || 0) + 1;
     });
     createChart('wouldReportChart', 'pie', reportData, [THEME.colors.success, THEME.colors.warning, THEME.colors.danger]);
 }
@@ -620,7 +681,7 @@ window.renderDetailedTable = () => {
 
         // Dynamic Columns from Codebook
         SURVEY_CODEBOOK.forEach(item => {
-            const val = r[item.key];
+            const val = getField(r, item.key);
             let displayVal = val;
 
             if (Array.isArray(val)) {
@@ -653,42 +714,52 @@ window.renderDetailedCharts = () => {
     if (!grid) return;
     grid.innerHTML = '';
 
-    // All questions with their types
+    // All 33 questions matching Survey.tsx structure with Q# prefix
     const questions = [
-        { id: 'age_group', title: 'Age Group', type: 'pie' },
+        // Section A - Demographics (Q1-Q3)
         { id: 'grade', title: 'Grade', type: 'bar' },
-        { id: 'province', title: 'Province', type: 'bar' },
+        { id: 'district', title: 'District', type: 'bar' },
         { id: 'school_type', title: 'School Type', type: 'doughnut' },
+        // Section B - Media Access (Q4-Q7)
         { id: 'primary_device', title: 'Primary Device', type: 'doughnut' },
+        { id: 'internet_access', title: 'Internet Access', type: 'bar' },
         { id: 'media_hours', title: 'Media Hours/Day', type: 'bar' },
-        { id: 'media_sources', title: 'News Sources', type: 'bar', multi: true },
-        { id: 'social_platforms', title: 'Social Platforms', type: 'bar', multi: true },
-        { id: 'heard_ethics', title: 'Heard of Ethics', type: 'pie' },
+        { id: 'own_device', title: 'Own Device', type: 'pie' },
+        // Section C - Ethics Awareness (Q8-Q10)
+        { id: 'heard_ethics', title: 'Heard of Media Ethics', type: 'pie' },
         { id: 'ethics_meaning', title: 'Ethics Meaning', type: 'bar', multi: true },
-        { id: 'learned_ethics', title: 'Where Learned', type: 'doughnut' },
-        { id: 'ethics_important', title: 'Ethics Importance', type: 'doughnut' },
-        { id: 'biggest_problem', title: 'Biggest Problem', type: 'bar' },
-        { id: 'seen_unethical', title: 'Seen Unethical', type: 'doughnut' },
-        { id: 'affected_by_fake', title: 'Affected by Fake News', type: 'pie' },
-        { id: 'verify_news', title: 'Verify Before Sharing', type: 'doughnut' },
-        { id: 'trust_media', title: 'Trust in Media', type: 'bar' },
-        { id: 'trust_social', title: 'Trust Social vs Traditional', type: 'pie' },
-        { id: 'media_influence', title: 'Media Influence', type: 'doughnut' },
-        { id: 'responsible_media', title: 'Should Media Be More Responsible', type: 'doughnut' },
-        { id: 'know_regulations', title: 'Know Regulations', type: 'pie' },
-        { id: 'need_regulation', title: 'Need Stronger Regulation', type: 'doughnut' },
-        { id: 'who_regulate', title: 'Who Should Regulate', type: 'pie' },
-        { id: 'media_better', title: 'What Would Make Media Better', type: 'bar', multi: true },
-        { id: 'youth_role', title: 'Youth Role in Ethics', type: 'doughnut' },
-        { id: 'would_report', title: 'Would Report Unethical', type: 'pie' },
-        { id: 'future_media', title: 'Most Trusted Professional', type: 'doughnut' }
+        { id: 'ethics_level', title: 'Media Ethics Level', type: 'doughnut' },
+        // Section D - Experiences (Q11-Q14)
+        { id: 'misleading_content', title: 'Seen Misleading Content', type: 'pie' },
+        { id: 'unfair_content', title: 'Seen Unfair Content', type: 'pie' },
+        { id: 'problematic_platform', title: 'Most Problematic Platform', type: 'doughnut' },
+        { id: 'ignored_ethics', title: 'Ethics Violations Ignored', type: 'pie' },
+        // Section E - Trust & Impact (Q15-Q18)
+        { id: 'trust_level', title: 'Trust in Sri Lankan Media', type: 'bar' },
+        { id: 'unethical_trust', title: 'Unethical Content Affects Trust', type: 'pie' },
+        { id: 'unethical_impact_youth', title: 'Impact on Youth', type: 'pie' },
+        { id: 'question_authenticity', title: 'Verify News Authenticity', type: 'doughnut' },
+        // Section F - Laws & Solutions (Q19-Q23)
+        { id: 'know_laws', title: 'Know Media Laws', type: 'pie' },
+        { id: 'laws_adequate', title: 'Laws Adequate', type: 'pie' },
+        { id: 'best_solution', title: 'Best Solution for Ethics', type: 'doughnut' },
+        { id: 'responsibility_who', title: 'Who is Responsible', type: 'pie' },
+        // Section G - Media Type Ethics Rating (Q24-Q27)
+        { id: 'tv_ethics', title: 'TV Ethical Standards', type: 'bar' },
+        { id: 'radio_ethics', title: 'Radio Ethical Standards', type: 'bar' },
+        { id: 'newspaper_ethics', title: 'Newspaper Ethical Standards', type: 'bar' },
+        { id: 'social_web_ethics', title: 'Social/Web Ethical Standards', type: 'bar' },
+        // Section H - Final Thoughts (Q28-Q31)
+        { id: 'student_voice', title: 'Should Students Have a Voice', type: 'pie' },
+        { id: 'school_curriculum', title: 'Ethics in Curriculum', type: 'pie' },
+        { id: 'current_state', title: 'Current State of Media Ethics', type: 'doughnut' }
     ];
 
     questions.forEach((q, idx) => {
-        // Aggregate Data
+        // Aggregate Data using getField for backward compatibility
         const counts = {};
         allResponses.forEach(r => {
-            const val = r[q.id];
+            const val = getField(r, q.id);
             if (!val) return;
             if (q.multi && Array.isArray(val)) {
                 val.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
@@ -718,85 +789,73 @@ window.renderDetailedCharts = () => {
 }
 
 // ============================================
-// SURVEY QUESTIONS CODEBOOK
+// SURVEY QUESTIONS CODEBOOK (Matches Survey.tsx - 33 Questions)
 // ============================================
 
 const SURVEY_CODEBOOK = [
-    { key: 'age_group', label: 'Age Group', question: 'What is your age group?', options: ['Under 12', '12-14', '14-16', '16-18', 'Over 18'] },
-    { key: 'grade', label: 'Grade', question: 'What grade are you in?', options: ['Grade 6-8', 'Grade 9-11', 'A/L'] },
-    { key: 'province', label: 'Province', question: 'Which province are you from?', options: null },
-    { key: 'district', label: 'District', question: 'Which district are you from?', options: null },
-    { key: 'school_type', label: 'School Type', question: 'What type of school do you attend?', options: ['Government', 'Private', 'International', 'Other'] },
-    { key: 'primary_device', label: 'Primary Device', question: 'What is your primary device for consuming media?', options: ['Smartphone', 'Tablet', 'Laptop', 'Desktop', 'TV', 'Other'] },
-    { key: 'own_device', label: 'Own Device', question: 'Do you own your own device?', options: ['Yes', 'No'] },
-    { key: 'internet_access', label: 'Internet Access', question: 'How do you access the internet?', options: ['Home Wi-Fi', 'Mobile Data', 'School', 'Public Wi-Fi'] },
-    { key: 'media_hours', label: 'Media Hours', question: 'How many hours per day do you spend on media?', options: ['Less than 1 hour', '1-2 hours', '2-4 hours', '4-6 hours', 'More than 6 hours'] },
-    { key: 'media_sources', label: 'Media Sources', question: 'What are your primary sources of news?', options: ['TV News', 'Newspapers', 'Social Media', 'Websites', 'Radio', 'Friends/Family'], multi: true },
-    { key: 'social_platforms', label: 'Social Platforms', question: 'Which social media platforms do you use?', options: ['Facebook', 'Instagram', 'TikTok', 'YouTube', 'WhatsApp', 'Twitter/X', 'Snapchat', 'Other'], multi: true },
-    { key: 'problematic_platform', label: 'Problematic Platform', question: 'Which platform has the most problematic content?', options: null },
+    // Section A - Demographics (Q1-Q3)
+    { key: 'Q1_grade', label: 'Grade', question: 'What grade are you in?', options: ['Grade 10', 'Grade 11', 'Grade 12', 'Grade 13'] },
+    { key: 'Q2_district', label: 'District', question: 'Which district are you from?', options: null },
+    { key: 'Q3_school_type', label: 'School Type', question: 'What type of school do you attend?', options: ['National School', 'Provincial Council Government School', 'Private / International School'] },
 
-    // Ethics Section
-    { key: 'heard_ethics', label: 'Heard Ethics', question: 'Have you heard of media ethics?', options: ['Yes', 'No', 'Not sure'] },
-    { key: 'ethics_meaning', label: 'Ethics Meaning', question: 'What does media ethics mean to you?', options: null, multi: true },
-    { key: 'learned_ethics', label: 'Learned Ethics', question: 'Have you learned about media ethics in school?', options: ['Yes', 'No'] },
-    { key: 'school_curriculum', label: 'School Curriculum', question: 'Is media ethics part of your school curriculum?', options: ['Yes', 'No'] },
-    { key: 'school_curriculum_comment', label: 'Curriculum Comment', question: 'Comments on school curriculum', options: null },
-    { key: 'ethics_importance', label: 'Ethics Importance', question: 'Do you think media ethics is important?', options: ['Very Important', 'Somewhat Important', 'Not Important', 'Not sure'] },
+    // Section B - Media Access (Q4-Q7)
+    { key: 'Q4_primary_device', label: 'Primary Device', question: 'Primary device for media', options: ['Smartphone', 'Tablet', 'Laptop / Computer', 'Television', 'No device access'] },
+    { key: 'Q5_internet_access', label: 'Internet Access', question: 'How do you access internet?', options: ['Home Wi-Fi', 'Mobile Data', 'School Internet', 'Internet Café', 'Rarely use'] },
+    { key: 'Q6_media_hours', label: 'Media Hours', question: 'Daily media consumption', options: ['Less than 1 hour', '1-3 hours', '3-5 hours', 'More than 5 hours'] },
+    { key: 'Q7_own_device', label: 'Own Device', question: 'Do you own your device?', options: ['Yes', 'No', 'Shared with family'] },
 
-    // Issues Section
-    { key: 'biggest_problem', label: 'Biggest Problem', question: 'What is the biggest ethical problem in Sri Lankan media?', options: ['Fake news', 'Bias', 'Sensationalism', 'Privacy violations', 'Hate speech', 'Other'] },
-    { key: 'seen_unethical', label: 'Seen Unethical', question: 'Have you seen unethical content in media?', options: ['Yes, often', 'Yes, sometimes', 'Rarely', 'Never'] },
-    { key: 'unethical_trust', label: 'Unethical Trust Impact', question: 'Does unethical content affect your trust?', options: ['Yes', 'No'] },
-    { key: 'affected_by_fake', label: 'Affected by Fake', question: 'Have you been affected by fake news?', options: ['Yes', 'No', 'Not sure'] },
-    { key: 'fake_news_impact', label: 'Fake News Impact', question: 'How has fake news impacted you?', options: null },
-    { key: 'misleading_content', label: 'Misleading Content', question: 'Have you seen misleading content?', options: ['Yes', 'No'] },
-    { key: 'misleading_content_comment', label: 'Misleading Comment', question: 'Comments on misleading content', options: null },
-    { key: 'verify_news', label: 'Verify News', question: 'Do you verify news before sharing?', options: ['Always', 'Sometimes', 'Rarely', 'Never'] },
-    { key: 'unfair_content', label: 'Unfair Content', question: 'Have you seen unfair reporting?', options: ['Yes', 'No'] },
-    { key: 'unfair_content_comment', label: 'Unfair Comment', question: 'Comments on unfair content', options: null },
-    { key: 'unethical_impact_youth', label: 'Impact on Youth', question: 'Does unethical media impact youth negatively?', options: ['Yes', 'No'] },
-    { key: 'unethical_impact_youth_comment', label: 'Impact Comment', question: 'Comments on youth impact', options: null },
+    // Section C - Ethics Awareness (Q8-Q10)
+    { key: 'Q8_heard_ethics', label: 'Heard Ethics', question: 'Have you heard of media ethics?', options: ['Yes', 'Slightly', 'No'] },
+    { key: 'Q9_ethics_meaning', label: 'Ethics Meaning', question: 'What does media ethics mean?', options: ['Honest', 'Fair', 'Responsible', 'Not harming', 'Dont know'], multi: true },
+    { key: 'Q10_ethics_level', label: 'Ethics Level', question: 'How ethical is Sri Lankan media?', options: ['Very ethical', 'Somewhat ethical', 'Not very ethical', 'Not at all ethical'] },
 
-    // Trust Section
-    { key: 'trust_media', label: 'Trust Media', question: 'How much do you trust Sri Lankan media?', options: ['Run by Government', 'Private', 'Independent'] },
-    { key: 'trust_level', label: 'Trust Level', question: 'Overall trust level?', options: ['High', 'Moderate', 'Low'] },
-    { key: 'newspaper_ethics', label: 'Newspaper Ethics', question: 'Rating of Newspaper Ethics', options: null },
-    { key: 'tv_ethics', label: 'TV Ethics', question: 'Rating of TV Ethics', options: null },
-    { key: 'radio_ethics', label: 'Radio Ethics', question: 'Rating of Radio Ethics', options: null },
-    { key: 'social_web_ethics', label: 'Social/Web Ethics', question: 'Rating of Social/Web Ethics', options: null },
-    { key: 'trust_social', label: 'Trust Social', question: 'How much do you trust social media news?', options: ['Fully trust', 'Somewhat trust', 'Neutral', 'Somewhat distrust', 'Fully distrust'] },
-    { key: 'media_influence', label: 'Media Influence', question: 'How much does media influence your opinions?', options: ['A lot', 'Somewhat', 'Very little', 'Not at all'] },
-    { key: 'responsible_media', label: 'Responsible Media', question: 'Do you think media is responsible for shaping society?', options: ['Yes', 'No', 'Partially'] },
-    { key: 'responsibility_who', label: 'Who Responsible', question: 'Who is most responsible?', options: null },
+    // Section D - Experiences (Q11-Q14)
+    { key: 'Q11_misleading_content', label: 'Misleading Content', question: 'Have you seen misleading content?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q11_misleading_content_comment', label: 'Misleading Comment', question: 'Comments on misleading content', options: null },
+    { key: 'Q12_unfair_content', label: 'Unfair Content', question: 'Have you seen unfair content?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q12_unfair_content_comment', label: 'Unfair Comment', question: 'Comments on unfair content', options: null },
+    { key: 'Q13_problematic_platform', label: 'Problematic Platform', question: 'Most problematic platform?', options: ['Television', 'Social Media/Web', 'Radio', 'Newspapers', 'Not sure'] },
+    { key: 'Q14_ignored_ethics', label: 'Ignored Ethics', question: 'Seen ethics violations ignored?', options: ['Yes', 'No', 'Not sure'] },
 
-    // Regulation Section
-    { key: 'know_regulations', label: 'Know Regulations', question: 'Do you know about media regulations in Sri Lanka?', options: ['Yes', 'No', 'Somewhat'] },
-    { key: 'know_laws', label: 'Know Laws', question: 'Are you aware of media laws?', options: ['Yes', 'No', 'Not sure'] },
-    { key: 'laws_adequate', label: 'Laws Adequate', question: 'Are current laws adequate?', options: ['Yes', 'No'] },
-    { key: 'laws_adequate_comment', label: 'Laws Comment', question: 'Comments on laws adequacy', options: null },
-    { key: 'need_regulation', label: 'Need Regulation', question: 'Do you think stronger regulations are needed?', options: ['Yes', 'No', 'Not sure'] },
-    { key: 'new_laws_suggestions', label: 'Law Suggestions', question: 'Suggestions for new laws', options: null },
-    { key: 'who_regulate', label: 'Who Regulate', question: 'Who should regulate media?', options: ['Government', 'Independent body', 'Media itself', 'Public', 'No regulation needed'] },
-    { key: 'question_authenticity', label: 'Question Authenticity', question: 'Do you question the authenticity of news?', options: ['Always', 'Sometimes', 'Never'] },
+    // Section E - Trust & Impact (Q15-Q18)
+    { key: 'Q15_trust_level', label: 'Trust Level', question: 'Trust in Sri Lankan media', options: ['Very high', 'Some extent', 'Very low', 'Not at all'] },
+    { key: 'Q16_unethical_trust', label: 'Unethical Trust', question: 'Does unethical content affect trust?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q17_unethical_impact_youth', label: 'Impact on Youth', question: 'Does unethical content impact youth?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q17_unethical_impact_youth_comment', label: 'Youth Impact Comment', question: 'Comments on youth impact', options: null },
+    { key: 'Q18_question_authenticity', label: 'Question Authenticity', question: 'How often do you verify news?', options: ['Constantly', 'Sometimes', 'Very rarely', 'Never'] },
+    { key: 'Q18_question_authenticity_comment', label: 'Authenticity Comment', question: 'Comments on verification', options: null },
 
-    // Future Vision
-    { key: 'media_better', label: 'Media Better', question: 'How can media be made better?', options: null, multi: true },
-    { key: 'best_solution', label: 'Best Solution', question: 'What is the best solution for ethical media?', options: null },
-    { key: 'current_state', label: 'Current State', question: 'How do you view the current state of media?', options: null },
-    { key: 'desired_change', label: 'Desired Change', question: 'What change do you desire?', options: null },
-    { key: 'youth_role', label: 'Youth Role', question: 'Should youth have a say in media ethics?', options: ['Yes', 'No', 'Not sure'] },
-    { key: 'student_voice', label: 'Student Voice', question: 'Is student voice heard?', options: ['Yes', 'No'] },
-    { key: 'student_voice_comment', label: 'Voice Comment', question: 'Comments on student voice', options: null },
-    { key: 'would_report', label: 'Would Report', question: 'Would you report unethical content?', options: ['Yes', 'No', 'Maybe'] },
-    { key: 'future_media', label: 'Future Media', question: 'What is your vision for future media?', options: null },
-    { key: 'other_thoughts', label: 'Other Thoughts', question: 'Any additional thoughts?', options: null }
+    // Section F - Laws & Solutions (Q19-Q23)
+    { key: 'Q19_know_laws', label: 'Know Laws', question: 'Do you know media laws?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q20_laws_adequate', label: 'Laws Adequate', question: 'Are current laws adequate?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q20_laws_adequate_comment', label: 'Laws Comment', question: 'Comments on laws', options: null },
+    { key: 'Q21_best_solution', label: 'Best Solution', question: 'Best solution for ethics?', options: ['New laws', 'Improve existing laws', 'Better implementation', 'Self-regulation'] },
+    { key: 'Q22_responsibility_who', label: 'Responsibility', question: 'Who is responsible?', options: ['Government', 'Media Orgs', 'Journalists', 'Social Media', 'Public'] },
+    { key: 'Q23_new_laws_suggestions', label: 'Law Suggestions', question: 'Suggestions for new laws', options: null },
+
+    // Section G - Media Type Ethics Rating (Q24-Q27)
+    { key: 'Q24_tv_ethics', label: 'TV Ethics', question: 'TV ethical standards', options: ['Very Good', 'Good', 'Neutral', 'Poor', 'Very Poor'] },
+    { key: 'Q25_radio_ethics', label: 'Radio Ethics', question: 'Radio ethical standards', options: ['Very Good', 'Good', 'Neutral', 'Poor', 'Very Poor'] },
+    { key: 'Q26_newspaper_ethics', label: 'Newspaper Ethics', question: 'Newspaper ethical standards', options: ['Very Good', 'Good', 'Neutral', 'Poor', 'Very Poor'] },
+    { key: 'Q27_social_web_ethics', label: 'Social/Web Ethics', question: 'Social media/web ethical standards', options: ['Very Good', 'Good', 'Neutral', 'Poor', 'Very Poor'] },
+
+    // Section H - Final Thoughts (Q28-Q33)
+    { key: 'Q28_student_voice', label: 'Student Voice', question: 'Should students have a voice?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q28_student_voice_comment', label: 'Voice Comment', question: 'Comments on student voice', options: null },
+    { key: 'Q29_school_curriculum', label: 'School Curriculum', question: 'Should ethics be in curriculum?', options: ['Yes', 'No', 'Not sure'] },
+    { key: 'Q29_school_curriculum_comment', label: 'Curriculum Comment', question: 'Comments on curriculum', options: null },
+    { key: 'Q30_biggest_ethical_problem', label: 'Biggest Problem', question: 'Biggest ethical problem?', options: null },
+    { key: 'Q31_current_state', label: 'Current State', question: 'Current state of media ethics', options: ['Improving', 'Getting worse', 'No change', 'Not sure'] },
+    { key: 'Q32_desired_change', label: 'Desired Change', question: 'What change do you want?', options: null },
+    { key: 'Q33_other_thoughts', label: 'Other Thoughts', question: 'Any other thoughts?', options: null }
 ];
 
-// Multi-select fields for SPSS binary splitting
+// MULTI-SELECT FIELDS (for SPSS export)
 const MULTI_SELECT_FIELDS = {
-    media_sources: ['TV News', 'Newspapers', 'Social Media', 'Websites', 'Radio', 'Friends/Family', 'Other'],
-    social_platforms: ['Facebook', 'Instagram', 'TikTok', 'YouTube', 'WhatsApp', 'Twitter/X', 'Snapchat', 'Other']
+    'Q9_ethics_meaning': ['Honest', 'Fair', 'Responsible', 'Not harming', 'Dont know']
 };
+
+
 
 // ============================================
 // EXPORT MODAL FUNCTIONS
@@ -878,17 +937,18 @@ window.runExport = () => {
         if (spssMode) {
             SURVEY_CODEBOOK.forEach(q => {
                 if (MULTI_SELECT_FIELDS[q.key]) {
-                    const selected = Array.isArray(r[q.key]) ? r[q.key] : (r[q.key] ? [r[q.key]] : []);
+                    const rawVal = getField(r, q.key);
+                    const selected = Array.isArray(rawVal) ? rawVal : (rawVal ? [rawVal] : []);
                     MULTI_SELECT_FIELDS[q.key].forEach(opt => {
                         row[`${q.key}_${opt.replace(/[^a-zA-Z0-9]/g, '')}`] = selected.includes(opt) ? 1 : 0;
                     });
                 } else {
-                    row[q.key] = formatValue(r[q.key]);
+                    row[q.key] = formatValue(getField(r, q.key));
                 }
             });
         } else {
             SURVEY_CODEBOOK.forEach(q => {
-                row[q.key] = formatValue(r[q.key]);
+                row[q.key] = formatValue(getField(r, q.key));
             });
         }
         return row;
@@ -915,31 +975,48 @@ function formatValue(val) {
 // DELETE FUNCTIONALITY
 // ============================================
 
-window.deleteResponse = async (userId) => {
-    if (!confirm('Are you sure you want to DELETE this response? \n\nThis will:\n1. Remove the survey data permanently.\n2. Reset the user status to "In Progress".\n3. Remove it from all charts and exports.')) {
-        return;
+let pendingDeleteId = null;
+
+window.deleteResponse = (userId) => {
+    pendingDeleteId = userId;
+    const modal = document.getElementById('delete-modal');
+    const userIdDisplay = document.getElementById('delete-user-id');
+    if (userIdDisplay) userIdDisplay.innerText = userId;
+    if (modal) {
+        modal.style.display = 'flex';
+        // Re-init icons for the modal if needed
+        if (window.lucide) window.lucide.createIcons();
     }
+};
+
+window.closeDeleteModal = () => {
+    const modal = document.getElementById('delete-modal');
+    if (modal) modal.style.display = 'none';
+    pendingDeleteId = null;
+};
+
+window.confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+
+    const userId = pendingDeleteId;
+    closeDeleteModal(); // Close immediately
 
     try {
-        // 1. Delete from Responses Collection
+        console.log(`Deleting response for ${userId}...`);
+
+        // Delete from Responses Collection only
+        // (User document is NOT updated to avoid permission issues with current rules)
         await db.collection('responses').doc(userId).delete();
 
-        // 2. Update User Document (Reset Status)
-        // We use merge: true to avoid overwriting other user fields
-        await db.collection('users').doc(userId).set({
-            submitted: false,
-            submittedAt: null
-        }, { merge: true });
-
-        // Toast or specific UI feedback is handled by the generic rendering loop 
-        // because the Firestore listener will trigger refreshDashboard() automatically.
-        alert('Response deleted successfully.');
+        console.log('Delete successful');
+        // No alert needed, dashboard refreshes automatically via listeners
 
     } catch (error) {
         console.error("Delete Error:", error);
         alert('Failed to delete response: ' + error.message);
     }
-}
+};
+
 
 
 // ============================================

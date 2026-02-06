@@ -864,3 +864,35 @@ th.sticky-col {
   z-index: 20; /* Higher than tbody sticky cells */
   background: #F9FAFB !important; /* Match header bg */
 }
+
+/* ============================================
+   NEW MODAL STYLES (Added)
+   ============================================ */
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.btn-ghost:hover {
+  background: #F1F5F9;
+  color: var(--text-primary);
+  border-color: #CBD5E1;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--bg-core);
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0 0 16px 16px; /* Match modal rounded corners */
+}

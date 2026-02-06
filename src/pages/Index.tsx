@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/landing/HeroSection";
@@ -10,12 +11,33 @@ import ResearchIntegrity from "@/components/landing/ResearchIntegrity";
 import ISACSection from "@/components/landing/ISACSection";
 import FinalCTA from "@/components/landing/FinalCTA";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import LoadingScreen from "@/components/auth/LoadingScreen";
 
 const Index = () => {
   const { language, setLanguage } = useLanguage();
+  const { user, loading, hasSubmitted } = useAuth();
+  const navigate = useNavigate();
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+
+  // Handle OAuth redirect: only redirect users who JUST completed OAuth login
+  useEffect(() => {
+    if (!loading && user) {
+      // Check if user just came from OAuth redirect
+      const oauthComplete = sessionStorage.getItem('oauth_redirect_complete');
+      if (oauthComplete === 'true') {
+        // Clear the flag so it doesn't redirect again
+        sessionStorage.removeItem('oauth_redirect_complete');
+        console.log("🏠 Index: OAuth redirect detected, navigating...", { hasSubmitted });
+        if (hasSubmitted) {
+          navigate('/submitted', { replace: true });
+        } else {
+          navigate('/survey', { replace: true });
+        }
+      }
+    }
+  }, [user, loading, hasSubmitted, navigate]);
 
   useEffect(() => {
     // Enforce minimum 3 second loading time

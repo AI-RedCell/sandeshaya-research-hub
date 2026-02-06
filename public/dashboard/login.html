@@ -15,16 +15,28 @@
 
     <style>
         :root {
-            --bg-core: #0F0A0A;
-            --bg-card: #1A1212;
-            --primary: #8B2635;
-            --primary-glow: rgba(139, 38, 53, 0.4);
-            --secondary: #C9A24D;
-            --text-primary: #FAFAFA;
-            --text-secondary: #A09898;
-            --text-muted: #6D6875;
-            --danger: #C62828;
-            --success: #2E7D32;
+            /* Industrial Slate Palette - Light Mode */
+            --bg-core: #F8FAFC;
+            /* Slate 50 */
+            --bg-card: #FFFFFF;
+            /* Official Maroon from index.css */
+            --primary: hsl(352, 78%, 24%);
+            --primary-rgb: 107, 15, 26;
+            --primary-glow: rgba(107, 15, 26, 0.15);
+            /* Official Gold */
+            --secondary: hsl(40, 52%, 54%);
+
+            --text-primary: #0F172A;
+            /* Slate 900 */
+            --text-secondary: #64748B;
+            /* Slate 500 */
+            --text-muted: #94A3B8;
+            /* Slate 400 */
+            --danger: #EF4444;
+            --success: #10B981;
+
+            --border: #E2E8F0;
+            /* Slate 200 */
         }
 
         * {
@@ -41,18 +53,22 @@
             justify-content: center;
             font-family: 'Inter', sans-serif;
             background-image:
-                radial-gradient(at 0% 0%, rgba(139, 38, 53, 0.2) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(201, 162, 77, 0.15) 0px, transparent 50%);
+                radial-gradient(circle at 10% 20%, rgba(201, 162, 77, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(107, 15, 26, 0.03) 0%, transparent 20%);
         }
 
         .login-container {
             width: 100%;
             max-width: 420px;
-            padding: 40px;
+            padding: 48px 40px;
             background: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow:
+                0 4px 6px -1px rgba(0, 0, 0, 0.02),
+                0 10px 15px -3px rgba(0, 0, 0, 0.04),
+                0 0 0 1px rgba(0, 0, 0, 0.01);
+            /* Subtle definition */
         }
 
         .logo-section {
@@ -60,23 +76,16 @@
             margin-bottom: 32px;
         }
 
-        .logo-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 16px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 30px var(--primary-glow);
+        .logo-img {
+            width: 100px;
+            /* Adjust based on actual logo aspect ratio */
+            height: auto;
+            margin: 0 auto 20px;
+            display: block;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
         }
 
-        .logo-icon svg {
-            width: 36px;
-            height: 36px;
-            stroke: white;
-        }
+
 
         h1 {
             font-family: 'PT Serif', serif;
@@ -104,19 +113,67 @@
 
         input {
             width: 100%;
-            padding: 14px 16px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
+            padding: 12px 16px;
+            /* Slightly more compact */
+            background: #F8FAFC;
+            /* Light slate bg */
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            /* Smoother radius */
             color: var(--text-primary);
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
         }
 
         input:focus {
             outline: none;
+            background: #FFFFFF;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Password Input Container */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+            /* Space for the toggle button */
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            width: auto;
+            box-shadow: none;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary);
+            transform: translateY(-50%);
+            box-shadow: none;
+        }
+
+        .toggle-password svg {
+            width: 20px;
+            height: 20px;
         }
 
         button {
@@ -124,19 +181,20 @@
             padding: 14px;
             background: var(--primary);
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             color: white;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             margin-top: 24px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 20px var(--primary-glow);
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px var(--primary-glow);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px var(--primary-glow);
+            filter: brightness(110%);
         }
 
         button:disabled {
@@ -214,9 +272,7 @@
 
     <div class="login-container">
         <div class="logo-section">
-            <div class="logo-icon">
-                <i data-lucide="lock" style="width:36px;height:36px;"></i>
-            </div>
+            <img src="logo.png" alt="ACBU Logo" class="logo-img">
             <h1>Sandeshaya Research</h1>
             <p class="subtitle">Admin Dashboard Access</p>
         </div>
@@ -232,7 +288,12 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <button type="button" class="toggle-password" id="toggle-password" aria-label="Show password">
+                        <i data-lucide="eye" id="eye-icon"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" id="login-btn">Sign In</button>
@@ -266,6 +327,18 @@
             successEl.classList.add('success');
             errorEl.classList.remove('error');
         }
+
+        // Password visibility toggle
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+
+        togglePasswordBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            eyeIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+            lucide.createIcons(); // Refresh icons
+        });
 
         // Check if already logged in
         auth.onAuthStateChanged(user => {

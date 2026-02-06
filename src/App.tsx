@@ -11,6 +11,14 @@ import Login from "./pages/Login";
 import Survey from "./pages/Survey";
 import Submitted from "./pages/Submitted";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
+
+const DashboardRedirect = () => {
+  useEffect(() => {
+    window.location.href = "/dashboard/index.html";
+  }, []);
+  return null;
+};
 
 const queryClient = new QueryClient();
 
@@ -28,15 +36,16 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route 
-                path="/survey" 
+              <Route
+                path="/survey"
                 element={
                   <ProtectedRoute>
                     <Survey />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route path="/submitted" element={<Submitted />} />
+              <Route path="/dashboard" element={<DashboardRedirect />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

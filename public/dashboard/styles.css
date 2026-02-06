@@ -88,9 +88,12 @@ body {
   flex-direction: column;
   position: fixed;
   height: 100vh;
+  height: 100dvh;
+  /* Mobile browser fix */
   z-index: 50;
   box-shadow: none;
-  /* Cleaner look */
+  overflow-y: auto;
+  /* Enable scrolling for small screens */
 }
 
 .brand {
@@ -846,7 +849,24 @@ body {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-core);
-}.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; display: inline-block; margin-right: 8px; } @keyframes spin { to { transform: rotate(360deg); } } 
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ============================================
    STICKY COLUMNS
@@ -857,12 +877,14 @@ body {
   z-index: 10;
   background: var(--bg-card);
   border-right: 2px solid var(--border-subtle) !important;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
 }
 
 th.sticky-col {
-  z-index: 20; /* Higher than tbody sticky cells */
-  background: #F9FAFB !important; /* Match header bg */
+  z-index: 20;
+  /* Higher than tbody sticky cells */
+  background: #F9FAFB !important;
+  /* Match header bg */
 }
 
 /* ============================================
@@ -894,5 +916,6 @@ th.sticky-col {
   padding: 1.5rem;
   background: var(--bg-core);
   border-top: 1px solid var(--border-subtle);
-  border-radius: 0 0 16px 16px; /* Match modal rounded corners */
+  border-radius: 0 0 16px 16px;
+  /* Match modal rounded corners */
 }

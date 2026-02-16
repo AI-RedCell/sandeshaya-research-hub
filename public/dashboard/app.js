@@ -206,15 +206,16 @@ function updateKPIs() {
     const completed = allUsers.filter(u => u.submitted === true).length;
     const incomplete = total - completed;
 
-    // Unique provinces from responses
-    const provinces = new Set();
+    // Unique districts from responses
+    const districts = new Set();
     allResponses.forEach(r => {
-        if (r.province) provinces.add(r.province);
+        const district = getField(r, 'district');
+        if (district) districts.add(district);
     });
 
     animateValue('total-users', total);
     document.getElementById('completion-rate').textContent = total ? Math.round((completed / total) * 100) + '%' : '0%';
-    document.getElementById('provinces-count').textContent = provinces.size;
+    document.getElementById('districts-count').textContent = districts.size;
     document.getElementById('drop-off-rate').textContent = total ? Math.round((incomplete / total) * 100) + '%' : '0%';
 }
 
@@ -223,26 +224,13 @@ function updateKPIs() {
 // ============================================
 
 function renderDemographics() {
-    // Province Distribution
-    const provinceData = {};
+    // District Distribution
+    const districtData = {};
     allResponses.forEach(r => {
-        if (r.province) provinceData[r.province] = (provinceData[r.province] || 0) + 1;
+        const val = getField(r, 'district');
+        if (val) districtData[val] = (districtData[val] || 0) + 1;
     });
-    createChart('provinceChart', 'bar', provinceData, ANALYTICS_PALETTE);
-
-    // School Type Distribution
-    const schoolData = {};
-    allResponses.forEach(r => {
-        if (r.school_type) schoolData[r.school_type] = (schoolData[r.school_type] || 0) + 1;
-    });
-    createChart('schoolTypeChart', 'doughnut', schoolData, MAROON_GRADIENT);
-
-    // Age Group Distribution
-    const ageData = {};
-    allResponses.forEach(r => {
-        if (r.age_group) ageData[r.age_group] = (ageData[r.age_group] || 0) + 1;
-    });
-    createChart('ageGroupChart', 'pie', ageData, ANALYTICS_PALETTE);
+    createChart('districtChart', 'bar', districtData, ANALYTICS_PALETTE);
 
     // Grade Distribution
     const gradeData = {};
@@ -409,7 +397,7 @@ function renderFunnelAnalysis() {
     // Based on which fields are filled in responses
     const sections = [
         { label: 'Started', count: allUsers.length },
-        { label: 'Section A (Demographics)', fields: ['age_group', 'grade', 'province'] },
+        { label: 'Section A (Demographics)', fields: ['grade', 'district'] },
         { label: 'Section B (Media)', fields: ['primary_device', 'media_hours'] },
         { label: 'Section C (Ethics)', fields: ['heard_ethics', 'ethics_important'] },
         { label: 'Section D (Issues)', fields: ['biggest_problem', 'verify_news'] },

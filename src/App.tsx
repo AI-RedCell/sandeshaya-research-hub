@@ -20,6 +20,13 @@ const DashboardRedirect = () => {
   return null;
 };
 
+const SurveyEntryRedirect = () => {
+  useEffect(() => {
+    window.location.href = "/survey-entry/index.html";
+  }, []);
+  return null;
+};
+
 const queryClient = new QueryClient();
 
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -46,6 +53,7 @@ const App = () => (
               />
               <Route path="/submitted" element={<Submitted />} />
               <Route path="/dashboard" element={<DashboardRedirect />} />
+              <Route path="/survey-entry" element={<SurveyEntryRedirect />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

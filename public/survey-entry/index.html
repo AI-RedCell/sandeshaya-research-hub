@@ -26,7 +26,7 @@
                 clearInterval(checkAuth);
                 firebase.auth().onAuthStateChanged(user => {
                     if (!user) {
-                        window.location.replace('login.html');
+                        window.location.replace('/survey-entry/login.html');
                     } else {
                         document.body.style.display = 'block';
                     }

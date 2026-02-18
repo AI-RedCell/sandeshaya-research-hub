@@ -8,6 +8,11 @@
       "source": "/survey-entry",
       "destination": "/survey-entry/login.html",
       "permanent": false
+    },
+    {
+      "source": "/survey-entry/",
+      "destination": "/survey-entry/login.html",
+      "permanent": false
     }
   ],
   "rewrites": [

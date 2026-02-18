@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandeshaya Survey Entry</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<style>
+    body {
+        display: none;
+    }
+
+    /* Prevent flash before auth check */
+</style>
+<script>
+    // Auth guard - redirect to login if not authenticated
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkAuth = setInterval(() => {
+            if (window.firebase && firebase.auth) {
+                clearInterval(checkAuth);
+                firebase.auth().onAuthStateChanged(user => {
+                    if (!user) {
+                        window.location.replace('login.html');
+                    } else {
+                        document.body.style.display = 'block';
+                    }
+                });
+            }
+        }, 50);
+    });
+</script>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>📋 Sandeshaya Survey Entry</h1>
+            <p>Manual Response Submission Tool</p>
+        </div>
+        <button type="button" id="generate-btn" class="btn-generate">
+            🎲 Generate Answers
+        </button>
+    </header>
+
+    <main class="container">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle card">
+            <div class="toggle-group">
+                <button type="button" id="mode-manual" class="toggle-btn active" onclick="setMode('manual')">
+                    📝 Manual Mode
+                </button>
+                <button type="button" id="mode-auto" class="toggle-btn" onclick="setMode('auto')">
+                    🤖 Auto Mode
+                </button>
+            </div>
+            <p class="mode-description" id="mode-desc">Enter UUID and fill survey manually or generate answers</p>
+        </div>
+
+        <!-- MANUAL MODE SECTION -->
+        <div id="manual-mode-section">
+            <!-- UUID Input -->
+            <div class="uuid-section card">
+                <label for="uuid-input">User UUID <span class="required">*</span></label>
+                <input type="text" id="uuid-input" placeholder="Enter user UUID (from users collection)">
+                <p class="hint">This UUID must already exist in the <code>users</code> collection.</p>
+
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb;">
+                    <label for="timestamp-input">Submission Timestamp <span
+                            style="color: #9ca3af; font-weight: normal;">(optional)</span></label>
+                    <input type="text" id="timestamp-input" class="timestamp-input"
+                        placeholder="e.g. February 3, 2026 at 4:53:58 PM UTC+5:30">
+                    <p class="hint">Leave empty for server time. Format:
+                        <code>February 3, 2026 at 4:53:58 PM UTC+5:30</code>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Survey Form -->
+            <form id="survey-form">
+                <!-- Sections will be injected by JS -->
+            </form>
+
+            <!-- Submit Button -->
+            <div class="submit-section">
+                <button type="button" id="submit-btn" class="btn-primary">
+                    Submit Response
+                </button>
+                <p id="status-message"></p>
+            </div>
+        </div>
+
+        <!-- AUTO MODE SECTION -->
+        <div id="auto-mode-section" style="display: none;">
+            <!-- User Info Input -->
+            <div class="auto-user-section card">
+                <h3>🤖 New Mock User</h3>
+                <p class="auto-subtitle">UUID will be auto-generated. Fill email and name below.</p>
+
+                <div class="auto-user-grid">
+                    <div class="form-group">
+                        <label for="auto-email">Email <span class="required">*</span></label>
+                        <input type="email" id="auto-email" placeholder="student@school.lk">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auto-name">Display Name <span class="required">*</span></label>
+                        <input type="text" id="auto-name" placeholder="Student Name">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label for="auto-timestamp">Submission Timestamp <span
+                            style="color: #9ca3af; font-weight: normal;">(optional)</span></label>
+                    <input type="text" id="auto-timestamp" class="timestamp-input"
+                        placeholder="e.g. February 3, 2026 at 4:53:58 PM UTC+5:30">
+                    <p class="hint">Leave empty for server time</p>
+                </div>
+
+                <div class="auto-info">
+                    <p>✅ UUID: Auto-generated | ✅ Creates user + response documents</p>
+                </div>
+            </div>
+
+            <!-- Survey Form (same as Manual mode) -->
+            <form id="auto-survey-form">
+                <!-- Sections will be injected by JS -->
+            </form>
+
+            <!-- Submit Button -->
+            <div class="submit-section">
+                <button type="button" id="auto-submit-btn" class="btn-auto">
+                    🚀 Submit Mock Entry
+                </button>
+                <p id="auto-status-message"></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Sandeshaya Research Hub – Manual Entry Tool</p>
+    </footer>
+
+    <!-- Firebase Config -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHtH8X_fKZt2vSH9vIjDFFmdfc1Eq5sC8",
+            authDomain: "sandeshaya-survey-acbu.firebaseapp.com",
+            projectId: "sandeshaya-survey-acbu",
+            storageBucket: "sandeshaya-survey-acbu.firebasestorage.app",
+            messagingSenderId: "1096006365344",
+            appId: "1:1096006365344:web:14062c551a6c9a710019c5",
+            measurementId: "G-E03PERW8W9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+    <!-- Survey Logic -->
+    <script src="app.js"></script>
+</body>
+
+</html>
